@@ -16,8 +16,6 @@ FROM
             CustomerID,
             YEAR(OrderDate)
     ) AS YearlyData
-WHERE 
-    OrderYear IN (2011, 2012, 2013, 2014)
 GROUP BY 
     OrderYear
 ORDER BY 
