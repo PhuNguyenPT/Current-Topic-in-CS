@@ -1,6 +1,6 @@
 SELECT 
 	CustomerID,
-	COUNT(SalesOrderID) AS TotalPurchases,
+	COUNT(SalesOrderID) AS TotalFrequency,
 	YEAR(OrderDate) as OrderYear
 FROM 
 	[CompanyX].[Sales].[SalesOrderHeader]
