@@ -1,13 +1,13 @@
 SELECT 
 	OrderYear,
-	SUM(TotalPurchases) AS sum_total_purchase,
-	AVG(TotalPurchases) AS avg_total_purchase,
-	MIN(TotalPurchases) AS min_total_purchase,
-	MAX(TotalPurchases) AS max_total_purchase
+	SUM(TotalFrequency) AS SumTotalFrequency,
+	AVG(TotalFrequency) AS MeanTotalFrequency,
+	MIN(TotalFrequency) AS MinTotalFrequency,
+	MAX(TotalFrequency) AS MaxTotalFrequency
 FROM (
 	SELECT 
 		CustomerID,
-		COUNT(SalesOrderID) AS TotalPurchases,
+		COUNT(SalesOrderID) AS TotalFrequency,
 		YEAR(OrderDate) as OrderYear
 	FROM 
 		[CompanyX].[Sales].[SalesOrderHeader]
