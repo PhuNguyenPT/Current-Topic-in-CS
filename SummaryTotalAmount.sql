@@ -1,14 +1,14 @@
 SELECT 
     OrderYear,
-    SUM(TotalAmountSpent) AS TotalAmountSpentInYear,
-	AVG(TotalAmountSpent) AS MeanTotalAmountSpent,
-	MIN(TotalAmountSpent) AS MinAmountSpent,
-	MAX(TotalAmountSpent) AS MaxAmountSpent
+    SUM(TotalSpent) AS TotalSpentInYear,
+	AVG(TotalSpent) AS MeanTotalSpent,
+	MIN(TotalSpent) AS MinAmountSpent,
+	MAX(TotalSpent) AS MaxAmountSpent
 FROM 
     (
         SELECT 
             CustomerID,
-            SUM(TotalDue) AS TotalAmountSpent,
+            SUM(TotalDue) AS TotalSpent,
             YEAR(OrderDate) AS OrderYear
         FROM 
             [CompanyX].[Sales].[SalesOrderHeader]
