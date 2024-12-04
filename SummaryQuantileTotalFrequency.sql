@@ -1,14 +1,14 @@
 With Query1 AS (
 	SELECT 
 		OrderYear,
-		SUM(TotalPurchases) AS sum_total_purchase,
-		AVG(TotalPurchases) AS avg_total_purchase,
-		MIN(TotalPurchases) AS min_total_purchase,
-		MAX(TotalPurchases) AS max_total_purchase
+		SUM(TotalFrequency) AS SumTotalFrequency,
+		AVG(TotalFrequency) AS MeanTotalFrequency,
+		MIN(TotalFrequency) AS MinTotalFrequency,
+		MAX(TotalFrequency) AS MaxTotalFrequency
 	FROM (
 		SELECT 
 			CustomerID,
-			COUNT(SalesOrderID) AS TotalPurchases,
+			COUNT(SalesOrderID) AS TotalFrequency,
 			YEAR(OrderDate) as OrderYear
 		FROM 
 			[CompanyX].[Sales].[SalesOrderHeader]
@@ -22,16 +22,16 @@ Query2 AS (
     SELECT 
         OrderYear,
         Quartile,
-        MIN(TotalPurchases) AS QuantileValue
+        MIN(TotalFrequency) AS QuantileValue
     FROM (
         SELECT  
             OrderYear,
-            TotalPurchases,
-            NTILE(4) OVER (ORDER BY TotalPurchases) AS Quartile
+            TotalFrequency,
+            NTILE(4) OVER (ORDER BY TotalFrequency) AS Quartile
         FROM (
             SELECT 
                 CustomerID,
-                COUNT(SalesOrderID) AS TotalPurchases,
+                COUNT(SalesOrderID) AS TotalFrequency,
                 YEAR(OrderDate) AS OrderYear
             FROM 
                 [CompanyX].[Sales].[SalesOrderHeader]
@@ -45,10 +45,10 @@ Query2 AS (
 )
 SELECT 
     q2.OrderYear,
-    q1.sum_total_purchase,
-    q1.max_total_purchase,
-    q1.min_total_purchase,
-    q1.max_total_purchase,
+    q1.SumTotalFrequency,
+    q1.MeanTotalFrequency,
+    q1.MinTotalFrequency,
+    q1.MaxTotalFrequency,
     q2.Quartile,
     q2.QuantileValue
 FROM 
