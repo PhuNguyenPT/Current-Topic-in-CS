@@ -3,7 +3,7 @@ WITH LatestOrderByYear AS (
         soh.CustomerID,
         soh.SalesOrderID,
         soh.OrderDate,
-        soh.TotalDue,
+        soh.TotalDue as TotalDueByYear,
         ROW_NUMBER() OVER (PARTITION BY soh.CustomerID ORDER BY soh.OrderDate DESC) AS RowNum
     FROM 
         [CompanyX].[Sales].[SalesOrderHeader] AS soh
@@ -15,7 +15,7 @@ LatestOrderBy9Months AS (
         soh.CustomerID,
         soh.SalesOrderID,
         soh.OrderDate,
-        soh.TotalDue,
+        soh.TotalDue as TotalDue9Months,
         ROW_NUMBER() OVER (PARTITION BY soh.CustomerID ORDER BY soh.OrderDate DESC) AS RowNum
     FROM 
         [CompanyX].[Sales].[SalesOrderHeader] AS soh
@@ -27,7 +27,7 @@ LatestOrderBy6Months AS (
         soh.CustomerID,
         soh.SalesOrderID,
         soh.OrderDate,
-        soh.TotalDue,
+        soh.TotalDue as TotalDue6Months,
         ROW_NUMBER() OVER (PARTITION BY soh.CustomerID ORDER BY soh.OrderDate DESC) AS RowNum
     FROM 
         [CompanyX].[Sales].[SalesOrderHeader] AS soh
@@ -39,7 +39,7 @@ LatestOrderBy3Months AS (
         soh.CustomerID,
         soh.SalesOrderID,
         soh.OrderDate,
-        soh.TotalDue,
+        soh.TotalDue as TotalDue3Months,
         ROW_NUMBER() OVER (PARTITION BY soh.CustomerID ORDER BY soh.OrderDate DESC) AS RowNum
     FROM 
         [CompanyX].[Sales].[SalesOrderHeader] AS soh
@@ -53,7 +53,10 @@ SELECT
 	lob9m.OrderDate as LatestOrderDateBy9Months,
 	lob6m.OrderDate as LatestOrderDateBy6Months,
 	lob3m.OrderDate as LatestOrderDateBy3Months,
-    loby.TotalDue
+    loby.TotalDueByYear,
+	lob9m.TotalDue9Months,
+	lob6m.TotalDue6Months,
+	lob3m.TotalDue3Months
 FROM
     (SELECT DISTINCT CustomerID FROM [CompanyX].[Sales].[SalesOrderHeader]) AS soh
 LEFT JOIN 
@@ -65,7 +68,7 @@ LEFT JOIN
 LEFT JOIN
 	LatestOrderBy3Months AS lob3m ON soh.CustomerID = lob3m.CustomerID AND lob3m.RowNum = 1
 ORDER BY
-    LatestOrderDateByYear,
-	LatestOrderDateBy9Months,
-	LatestOrderDateBy6Months,
-	LatestOrderDateBy3Months DESC;
+    LatestOrderDateByYear DESC,
+	LatestOrderDateBy9Months ASC,
+	LatestOrderDateBy6Months ASC,
+	LatestOrderDateBy3Months ASC;
