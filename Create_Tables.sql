@@ -35,11 +35,11 @@ CREATE TABLE dbo.DimStore (
     CurrentStoreFrequencyScore INT        -- To be populated later (left empty for now)
 );
 
-CREATE TABLE dbo.DimTotalSpent (
-    TotalSpentID INT IDENTITY(1,1) PRIMARY KEY,  -- Auto-incremented primary key
-    SubTotal DECIMAL(20, 2),                     -- Stores the subtotal amount
-    Tax DECIMAL(20, 2),                          -- Stores the tax amount
-    Freight DECIMAL(20, 2),                      -- Stores the freight/shipping cost
-    TotalDue DECIMAL(20, 2),                     -- Stores the total due amount
-    TotalSpent DECIMAL(20, 2)                    -- Stores the total amount spent
-);
+--CREATE TABLE dbo.DimTotalSpent (
+--    TotalSpentID INT IDENTITY(1,1) PRIMARY KEY,  -- Auto-incremented primary key
+--    SubTotal DECIMAL(20, 2),                     -- Stores the subtotal amount
+--   Tax DECIMAL(20, 2),                          -- Stores the tax amount
+--    Freight DECIMAL(20, 2),                      -- Stores the freight/shipping cost
+--    TotalDue DECIMAL(20, 2),                     -- Stores the total due amount
+--    TotalSpent DECIMAL(20, 2)                    -- Stores the total amount spent
+--);
