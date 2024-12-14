@@ -2,9 +2,8 @@
 USE test;
 
 -- Insert dates for the range 2011-2014 with incrementing DateID
-INSERT INTO dbo.DimDate (DateID, Day, Month, Year, Quarter)
+INSERT INTO dbo.DimDate (Day, Month, Year, Quarter)
 SELECT 
-    ROW_NUMBER() OVER (ORDER BY CurrentDate) AS DateID,  -- Generate an incrementing DateID
     DAY(CurrentDate) AS Day,                             -- Extracts only the day
     MONTH(CurrentDate) AS Month,                         -- Extracts the month
     YEAR(CurrentDate) AS Year,                           -- Extracts the year
