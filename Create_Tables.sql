@@ -3,7 +3,7 @@ USE test;
 
 -- Create DimDate table in dbo schema
 CREATE TABLE dbo.DimDate (
-    DateID INT PRIMARY KEY,
+    DateID INT IDENTITY(1,1) PRIMARY KEY,
     Day INT NOT NULL,           -- Stores only the day of the month
     Month INT NOT NULL,
     Year INT NOT NULL,
