@@ -2,7 +2,7 @@
 USE test;
 
 -- Insert dates for the range 2011-2014 with incrementing DateID
-INSERT INTO dbo.DimDate (Day, Month, Year, Quarter)
+INSERT INTO test.dbo.DimDate (Day, Month, Year, Quarter)
 SELECT 
     DAY(CurrentDate) AS Day,                             -- Extracts only the day
     MONTH(CurrentDate) AS Month,                         -- Extracts the month
@@ -18,7 +18,7 @@ ORDER BY CurrentDate;  -- Ensure the dates are in ascending order
 
 
 -- Change DimCustomer
-INSERT INTO dbo.DimCustomer (CustomerID, FirstName, MiddleName, LastName)
+INSERT INTO test.dbo.DimCustomer (CustomerID, FirstName, MiddleName, LastName)
 SELECT 
     c.CustomerID,
     p.FirstName,
@@ -32,7 +32,7 @@ ON
     c.PersonID = p.BusinessEntityID;
 
 -- Change DimStore
-INSERT INTO dbo.DimStore (BusinessEntityID,StoreName, AddressLine1, AddressLine2, PostalCode, CountryRegionCode, StateName)
+INSERT INTO test.dbo.DimStore (BusinessEntityID,StoreName, AddressLine1, AddressLine2, PostalCode, CountryRegionCode, StateName)
 SELECT 
     s.BusinessEntityID,
     s.Name AS StoreName,
