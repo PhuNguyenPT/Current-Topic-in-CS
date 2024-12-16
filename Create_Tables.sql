@@ -1,6 +1,11 @@
 -- Use the default schema (dbo)
 USE test;
 
+DROP TABLE IF EXISTS dbo.FactCustomerChurn;
+DROP TABLE IF EXISTS dbo.DimCustomer;
+DROP TABLE IF EXISTS dbo.DimDate;
+DROP TABLE IF EXISTS dbo.DimStore;
+
 -- Create DimDate table in dbo schema
 CREATE TABLE test.dbo.DimDate (
     DateID INT IDENTITY(1,1) PRIMARY KEY,
@@ -26,6 +31,7 @@ CREATE TABLE test.dbo.DimCustomer (
 CREATE TABLE test.dbo.DimStore (
     StoreID INT IDENTITY(1,1) PRIMARY KEY,              -- From Sales.Store.BusinessEntityID
 	BusinessEntityID INT,
+	SalesPersonID INT,
     StoreName NVARCHAR(255),              -- From Sales.Store.Name
     AddressLine1 NVARCHAR(255),            -- From Person.Address.AddressLine1
     AddressLine2 NVARCHAR(255),            -- From Person.Address.AddressLine2
@@ -43,3 +49,34 @@ CREATE TABLE test.dbo.DimStore (
 --    TotalDue DECIMAL(20, 2),                     -- Stores the total due amount
 --    TotalSpent DECIMAL(20, 2)                    -- Stores the total amount spent
 --);
+
+CREATE TABLE dbo.FactCustomerChurn (
+        FactID INT IDENTITY(1,1) PRIMARY KEY,        -- Unique identifier for each record
+        DateID INT ,								 -- Foreign Key to DimDate table
+        ChurnScore INT,                              -- Score representing churn risk
+        ChurnRatio NUMERIC(3,2),                     -- Ratio related to churn
+        TotalFrequencyScore INT,                     -- Total frequency score
+        RecencyScore INT,                            -- Score for recency of interactions
+        TotalSpentScore FLOAT,                       -- Score for total spending
+        CustomerID INT ,							 -- Foreign Key to Customer table
+        StoreID INT ,								 -- Foreign Key to Store table
+        Recency INT,                                 -- Days since last interaction
+        SalesOrderID INT,                            -- Identifier for a sales order
+		SalesPersonID INT,
+        TotalFrequency INT,                          -- Total frequency of customer orders
+        StoreFrequencyScore INT,                     -- Frequency score per store
+        StoreChurnRatio NUMERIC(3,2),                -- Store-specific churn ratio
+        ProductID INT,                               -- Foreign Key to Product table
+        SpecialOfferID INT,                          -- Foreign Key to Special Offer table
+        AllProductsQuantity INT,                     -- Quantity of all products bought
+        SingleProductQuantity INT,                   -- Quantity of a single product bought
+        ProductQuantityRatio NUMERIC(3,2),           -- Ratio of product quantities
+        ProductQuantityScoreID INT,                  -- Score for product quantity
+        ProductChurnRatioID INT,                     -- Ratio for product-related churn
+        TotalSpentID INT,                            -- Identifier for total spending data
+        SubTotal NUMERIC(20,2),                      -- Subtotal of a purchase
+        Tax NUMERIC(20,2),                           -- Tax amount
+        Freight NUMERIC(20,2),                       -- Freight cost
+        TotalDue NUMERIC(20,2),                      -- Total amount due
+        TotalSpent NUMERIC(20,2)                     -- Total spending by the customer
+    );
