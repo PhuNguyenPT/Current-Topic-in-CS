@@ -2,7 +2,7 @@
 USE test;
 
 -- Create DimDate table in dbo schema
-CREATE TABLE dbo.DimDate (
+CREATE TABLE test.dbo.DimDate (
     DateID INT IDENTITY(1,1) PRIMARY KEY,
     Day INT NOT NULL,           -- Stores only the day of the month
     Month INT NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE dbo.DimDate (
 );
 
 -- Create DimCustomer table in dbo schema
-CREATE TABLE dbo.DimCustomer (
+CREATE TABLE test.dbo.DimCustomer (
     CustomerID INT PRIMARY KEY,
     FirstName NVARCHAR(255),
     MiddleName NVARCHAR(255),
@@ -23,7 +23,7 @@ CREATE TABLE dbo.DimCustomer (
 );
 
 -- Create DimStore table in dbo schema
-CREATE TABLE dbo.DimStore (
+CREATE TABLE test.dbo.DimStore (
     StoreID INT IDENTITY(1,1) PRIMARY KEY,              -- From Sales.Store.BusinessEntityID
 	BusinessEntityID INT,
     StoreName NVARCHAR(255),              -- From Sales.Store.Name
