@@ -57,10 +57,27 @@ ORDER BY
 
 
 -- Change FactCustomerChurn
-INSERT INTO dbo.FactCustomerChurn (SalesOrderID, SalesPersonID, ProductID, SpecialOfferID, SubTotal, Tax, Freight, TotalDue )
+INSERT INTO dbo.FactCustomerChurn (DateID, CustomerID, StoreID, SalesOrderID, SalesPersonID, ProductID, SpecialOfferID, SubTotal, Tax, Freight, TotalDue)
 SELECT 
+    (
+        SELECT TOP 1 dd.DateID
+        FROM test.dbo.DimDate dd
+        WHERE DAY(soh.OrderDate) = dd.Day
+        AND MONTH(soh.OrderDate) = dd.Month
+        AND YEAR(soh.OrderDate) = dd.Year
+    ) AS DateID,
+	(
+        SELECT TOP 1 dc.CustomerID
+        FROM test.dbo.DimCustomer dc
+        WHERE soh.CustomerID = dc.CustomerID
+    ) AS CustomerID,
+	(
+        SELECT TOP 1 ds.StoreID
+        FROM test.dbo.DimStore ds
+        WHERE soh.SalesPersonID = ds.SalesPersonID
+    ) AS StoreID,
     soh.SalesOrderID,
-	soh.SalesPersonID,
+    soh.SalesPersonID,
     sod.ProductID,
     sod.SpecialOfferID,
     soh.SubTotal,
@@ -74,3 +91,4 @@ JOIN
     ON soh.SalesOrderID = sod.SalesOrderID
 ORDER BY 
     soh.SalesOrderID;
+
