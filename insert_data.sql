@@ -32,9 +32,10 @@ ON
     c.PersonID = p.BusinessEntityID;
 
 -- Change DimStore
-INSERT INTO test.dbo.DimStore (BusinessEntityID,StoreName, AddressLine1, AddressLine2, PostalCode, CountryRegionCode, StateName)
+INSERT INTO test.dbo.DimStore (BusinessEntityID, SalesPersonID, StoreName, AddressLine1, AddressLine2, PostalCode, CountryRegionCode, StateName)
 SELECT 
     s.BusinessEntityID,
+	s.SalesPersonID,
     s.Name AS StoreName,
     a.AddressLine1,
     a.AddressLine2,
@@ -51,3 +52,25 @@ LEFT JOIN
     [CompanyX].[Person].[Address] a ON bea.AddressID = a.AddressID
 LEFT JOIN 
     [CompanyX].[Person].[StateProvince] sp ON a.StateProvinceID = sp.StateProvinceID
+ORDER BY
+	s.BusinessEntityID
+
+
+-- Change FactCustomerChurn
+INSERT INTO dbo.FactCustomerChurn (SalesOrderID, SalesPersonID, ProductID, SpecialOfferID, SubTotal, Tax, Freight, TotalDue )
+SELECT 
+    soh.SalesOrderID,
+	soh.SalesPersonID,
+    sod.ProductID,
+    sod.SpecialOfferID,
+    soh.SubTotal,
+    soh.TaxAmt AS Tax,
+    soh.Freight,
+    soh.TotalDue
+FROM 
+    [CompanyX].[Sales].[SalesOrderHeader] AS soh
+JOIN 
+    [CompanyX].[Sales].[SalesOrderDetail] AS sod 
+    ON soh.SalesOrderID = sod.SalesOrderID
+ORDER BY 
+    soh.SalesOrderID;
