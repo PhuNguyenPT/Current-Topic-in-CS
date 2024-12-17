@@ -91,4 +91,3 @@ JOIN
     ON soh.SalesOrderID = sod.SalesOrderID
 ORDER BY 
     soh.SalesOrderID;
-
