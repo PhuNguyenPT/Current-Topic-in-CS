@@ -41,6 +41,8 @@ WITH Store2Data AS (
     FROM 
         [CompanyX].[Sales].[Store2] s2
     LEFT JOIN 
+        [CompanyX].[Person].[BusinessEntity] be ON s.BusinessEntityID = be.BusinessEntityID
+    LEFT JOIN 
         [CompanyX].[Person].[BusinessEntityAddress2] bea ON s2.BusinessEntityID = bea.BusinessEntityID
     LEFT JOIN 
         [CompanyX].[Person].[Address2] a ON bea.AddressID = a.AddressID
@@ -89,6 +91,8 @@ WITH Store2Data AS (
         sp.Name AS StateName
     FROM 
         [CompanyX].[Sales].[Store2] s2
+    LEFT JOIN 
+        [CompanyX].[Person].[BusinessEntity] be ON s.BusinessEntityID = be.BusinessEntityID
     LEFT JOIN 
         [CompanyX].[Person].[BusinessEntityAddress2] bea ON s2.BusinessEntityID = bea.BusinessEntityID
     LEFT JOIN 
