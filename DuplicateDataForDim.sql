@@ -1,5 +1,16 @@
 USE CompanyX;
 
+DROP TABLE IF EXISTS Sales.Customer2;
+DROP TABLE IF EXISTS Person.Person2;
+DROP TABLE IF EXISTS Sales.Store2;
+DROP TABLE IF EXISTS Person.BusinessEntity2;
+DROP TABLE IF EXISTS Person.BusinessEntityAddress2;
+DROP TABLE IF EXISTS Person.Address2
+DROP TABLE IF EXISTS Person.StateProvince2;
+DROP TABLE IF EXISTS Sales.SalesOrderHeader2;
+DROP TABLE IF EXISTS Person.AddressType2;
+DROP TABLE IF EXISTS Sales.SalesTerritory2;
+
 -- Copy Sales.Customer to Sales.Customer2
 SELECT * INTO Sales.Customer2
 FROM Sales.Customer;
