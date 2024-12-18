@@ -8,17 +8,13 @@ WITH TotalSpentData AS (
     GROUP BY 
         CustomerID
 ),
-MinSpent AS (
-    -- Get the minimum total spent across all customers
+GlobalMinMax AS (
+    -- Step 3: Calculate global min and max OrderDate from the entire SalesOrderHeader table
     SELECT 
-        MIN(TotalSpent) AS MinTotalSpent
-    FROM TotalSpentData
-),
-MaxSpent AS (
-    -- Get the maximum total spent across all customers
-    SELECT 
-        MAX(TotalSpent) AS MaxTotalSpent
-    FROM TotalSpentData
+        MIN(TotalSpent) AS GlobalMin,  -- Earliest order date (oldest)
+        MAX(TotalSpent) AS GlobalMax   -- Latest order date (most recent)
+    FROM 
+        TotalFrequencyData
 ),
 QuantileData AS (
     -- Get the Quantile values for TotalSpent in Quantiles 2 to 4
@@ -41,13 +37,13 @@ ScoreRanges AS (
         Score,
         -- For Score 1, LowerLimit is the MinTotalSpent
         CASE 
-            WHEN Score = 1 THEN (SELECT MinTotalSpent FROM MinSpent)
+            WHEN Score = 1 THEN (SELECT GlobalMin FROM GlobalMinMax)
             ELSE (SELECT MinQuantileValue FROM QuantileLimits) + ((SELECT MaxQuantileValue FROM QuantileLimits) - (SELECT MinQuantileValue FROM QuantileLimits)) / 10.0 * (Score - 1)
         END AS LowerLimit,
         
         -- For Score 10, UpperLimit is the MaxTotalSpent
         CASE 
-            WHEN Score = 10 THEN (SELECT MaxTotalSpent FROM MaxSpent)
+            WHEN Score = 10 THEN (SELECT GlobalMax FROM GlobalMinMax)
             ELSE (SELECT MinQuantileValue FROM QuantileLimits) + ((SELECT MaxQuantileValue FROM QuantileLimits) - (SELECT MinQuantileValue FROM QuantileLimits)) / 10.0 * Score
         END AS UpperLimit
     FROM 
