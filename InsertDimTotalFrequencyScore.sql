@@ -1,7 +1,7 @@
 WITH TotalFrequencyData AS (
     SELECT 
         CustomerID,
-        COUNT(SalesOrderID) AS TotalFrequency,
+        COUNT(SalesOrderID) AS TotalFrequency
     FROM 
         [CompanyX].[Sales].[SalesOrderHeader]
     GROUP BY 

@@ -71,7 +71,7 @@ ScoreRanges AS (
         QuantileLimits
 )
 -- Insert the calculated scores into DimTotalFreqScore
-INSERT INTO Star_schema.dbo.DimStoreFreqScore (Score, LowerLimit, UpperLimit)
+INSERT INTO test.dbo.DimStoreFreqScore (Score, LowerLimit, UpperLimit)
 SELECT 
     Score,
     LowerLimit,
