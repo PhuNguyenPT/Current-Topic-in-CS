@@ -1,17 +1,31 @@
-WITH QuantileData AS (
+WITH TotalFrequencyData AS (
     SELECT 
         CustomerID,
         COUNT(SalesOrderID) AS TotalFrequency,
-        NTILE(4) OVER (ORDER BY COUNT(SalesOrderID)) AS Quartile
     FROM 
         [CompanyX].[Sales].[SalesOrderHeader]
     GROUP BY 
         CustomerID
 ),
+GlobalMinMax AS (
+    -- Step 3: Calculate global min and max OrderDate from the entire SalesOrderHeader table
+    SELECT 
+        MIN(TotalFrequency) AS GlobalMin,  -- Earliest order date (oldest)
+        MAX(TotalFrequency) AS GlobalMax   -- Latest order date (most recent)
+    FROM 
+        TotalFrequencyData
+),
+TotalFreqQuantileData AS (
+    -- Get the Quantile values for TotalSpent in Quantiles 1 to 4
+    SELECT 
+        NTILE(4) OVER (ORDER BY TotalFrequency) AS Quartile,
+        TotalFrequency
+    FROM TotalFrequencyData
+),
 FilteredQuantiles AS (
     SELECT 
         TotalFrequency
-    FROM QuantileData
+    FROM TotalFreqQuantileData
     WHERE Quartile BETWEEN 2 AND 4  -- Focus on Quantiles 2 to 4
 ),
 QuantileLimits AS (
@@ -25,13 +39,13 @@ ScoreRanges AS (
         Score,
         -- For Score 1, LowerLimit is the MinQuantileValue
         CASE 
-            WHEN Score = 1 THEN 0
+            WHEN Score = 1 THEN (SELECT GlobalMin FROM GlobalMinMax)
             ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 10.0 * (Score - 1)
         END AS LowerLimit,
         
         -- UpperLimit is calculated based on the next score range
         CASE 
-            WHEN Score = 10 THEN MaxQuantileValue  -- For score 10, the upper limit is the MaxQuantileValue
+            WHEN Score = 10 THEN (SELECT GlobalMax FROM GlobalMinMax)  -- For score 10, the upper limit is the MaxQuantileValue
             ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 10.0 * Score
         END AS UpperLimit
     FROM 
