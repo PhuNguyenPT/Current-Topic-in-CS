@@ -9,7 +9,6 @@ CREATE TABLE test.dbo.DimTotalFreqScore (
 
 CREATE TABLE test.dbo.DimChurnRatio (
     ChurnRatioID INT IDENTITY(1,1) PRIMARY KEY,
-    CustomerID INT NOT NULL, -- Foreign Key to a customer table
     TotalFrequencyScore INT NOT NULL,
     RecencyScore INT NOT NULL,
     TotalSpentScore INT NOT NULL,
@@ -47,7 +46,6 @@ CREATE TABLE test.dbo.DimStoreFreqScore (
 
 CREATE TABLE test.dbo.DimStoreChurnRatio (
     StoreChurnRatioID INT IDENTITY(1,1) PRIMARY KEY,   -- Unique identifier for each record
-    CustomerID INT NOT NULL,            -- Foreign Key to the customer table
-    StoreID INT NOT NULL,               -- Foreign Key to the store table
-    ChurnRatio DECIMAL(5, 2)            -- Stores the churn ratio
+    StoreFreqScore INT NOT NULL,
+    ChurnRatio VARCHAR(255)            -- Stores the churn ratio
 );

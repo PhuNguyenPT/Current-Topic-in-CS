@@ -12,35 +12,49 @@ WITH TotalStoreFreqData AS (
     GROUP BY 
         s.BusinessEntityID, soh.CustomerID
 ),
-MinStore AS (
-    -- Get the minimum total spent across all customers
+TotalFrequencyData AS (
     SELECT 
-        MIN(TotalFrequency) AS MinTotalStoreFreq
-    FROM TotalStoreFreqData
+        CustomerID,
+        COUNT(SalesOrderID) AS TotalFrequency
+    FROM 
+        [CompanyX].[Sales].[SalesOrderHeader]
+    GROUP BY 
+        CustomerID
 ),
-MaxStore AS (
-    -- Get the maximum total spent across all customers
+StoreRatio AS (
     SELECT 
-        MAX(TotalFrequency) AS MaxTotalStoreFreq
-    FROM TotalStoreFreqData
+    CAST((tsf.TotalFrequency * 1.0 / tf.TotalFrequency) AS NUMERIC(10, 2)) AS Ratio, -- Cast Ratio
+    tsf.StoreID, 
+    tsf.CustomerID
+    FROM TotalStoreFreqData tsf
+    LEFT JOIN TotalFrequencyData tf
+    ON tsf.CustomerID = tf.CustomerID
+),
+GlobalMinMax AS (
+    -- Step 3: Calculate global min and max OrderDate from the entire SalesOrderHeader table
+    SELECT 
+        MIN(Ratio) AS GlobalMin,  -- Earliest order date (oldest)
+        MAX(Ratio) AS GlobalMax   -- Latest order date (most recent)
+    FROM 
+        StoreRatio
 ),
 StoreQuantileData AS (
     -- Get the Quantile values for TotalSpent in Quantiles 1 to 4
     SELECT 
-        NTILE(4) OVER (ORDER BY TotalFrequency) AS Quartile,
-        TotalFrequency
-    FROM TotalStoreFreqData
+        NTILE(4) OVER (ORDER BY Ratio) AS Quartile,
+        Ratio
+    FROM StoreRatio
 ),
 FilteredQuantiles AS (
     SELECT 
-        TotalFrequency
+        Ratio
     FROM StoreQuantileData
     WHERE Quartile BETWEEN 2 AND 4  -- Focus on Quantiles 2 to 4
 ),
 QuantileLimits AS (
     SELECT 
-        MIN(TotalFrequency) AS MinQuantileValue,
-        MAX(TotalFrequency) AS MaxQuantileValue
+        MIN(Ratio) AS MinQuantileValue,
+        MAX(Ratio) AS MaxQuantileValue
     FROM FilteredQuantiles
 ),
 ScoreRanges AS (
@@ -48,13 +62,13 @@ ScoreRanges AS (
         Score,
         -- For Score 1, LowerLimit is the MinQuantileValue
         CASE 
-            WHEN Score = 1 THEN (SELECT MinTotalStoreFreq FROM MinStore)
+            WHEN Score = 1 THEN (SELECT GlobalMin FROM GlobalMinMax)
             ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 10.0 * (Score - 1)
         END AS LowerLimit,
         
         -- UpperLimit is calculated based on the next score range
         CASE 
-            WHEN Score = 10 THEN (SELECT MaxTotalStoreFreq FROM MaxStore)  -- For score 10, the upper limit is the MaxQuantileValue
+            WHEN Score = 10 THEN (SELECT GlobalMax FROM GlobalMinMax)  -- For score 10, the upper limit is the MaxQuantileValue
             ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 10.0 * Score
         END AS UpperLimit
     FROM 
