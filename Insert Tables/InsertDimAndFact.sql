@@ -1,5 +1,12 @@
 -- Use the target database
 USE test;
+------------------------------------------------------------------------------------------------------
+-- Delete all Data
+DELETE FROM test.dbo.DimDate;
+DELETE FROM test.dbo.DimCustomer;
+DELETE FROM test.dbo.DimStore;
+DELETE FROM test.dbo.FactCustomerChurn;
+------------------------------------------------------------------------------------------------------
 
 -- Insert dates for the range 2011-2014 with incrementing DateID
 INSERT INTO test.dbo.DimDate (Day, Month, Year, Quarter)
@@ -15,6 +22,7 @@ FROM (
     WHERE Type = 'P' AND Number <= DATEDIFF(DAY, '2011-01-01', '2014-12-31')
 ) AS DateRange
 ORDER BY CurrentDate;  -- Ensure the dates are in ascending order
+------------------------------------------------------------------------------------------------------
 
 
 -- Change DimCustomer
@@ -30,6 +38,7 @@ JOIN
     [CompanyX].[Person].[Person] AS p 
 ON 
     c.PersonID = p.BusinessEntityID;
+------------------------------------------------------------------------------------------------------
 
 -- Change DimStore
 INSERT INTO test.dbo.DimStore (BusinessEntityID, SalesPersonID, StoreName, AddressLine1, AddressLine2, PostalCode, CountryRegionCode, StateName)
@@ -54,6 +63,7 @@ LEFT JOIN
     [CompanyX].[Person].[StateProvince] sp ON a.StateProvinceID = sp.StateProvinceID
 ORDER BY
 	s.BusinessEntityID
+------------------------------------------------------------------------------------------------------
 
 
 -- Change FactCustomerChurn
@@ -91,3 +101,4 @@ JOIN
     ON soh.SalesOrderID = sod.SalesOrderID
 ORDER BY 
     soh.SalesOrderID;
+------------------------------------------------------------------------------------------------------

@@ -1,5 +1,7 @@
 -- Use the target database
 USE test;
+------------------------------------------------------------------------------------------------------
+
 
 -- Update existing records in FactCustomerChurn if there are changes in SalesOrderHeader
 UPDATE fcc
@@ -57,11 +59,12 @@ WHERE
         OR fcc.Freight <> soh.Freight
         OR fcc.TotalDue <> soh.TotalDue
     );
+------------------------------------------------------------------------------------------------------
 
 
 
 
--- Insert new SalesOrderIDs into FactCustomerChurn
+-- Update FactCustomerChurn with TotalFrequency and TotalSpent
 INSERT INTO dbo.FactCustomerChurn (
     DateID, 
     CustomerID, 
@@ -73,7 +76,9 @@ INSERT INTO dbo.FactCustomerChurn (
     SubTotal, 
     Tax, 
     Freight, 
-    TotalDue
+    TotalDue, 
+    TotalFrequency, 
+    TotalSpent
 )
 SELECT 
     -- Map DateID from DimDate
@@ -103,12 +108,38 @@ SELECT
     soh.SubTotal,
     soh.TaxAmt AS Tax,
     soh.Freight,
-    soh.TotalDue
+    soh.TotalDue,
+    tf.TotalFrequency,
+    ts.TotalSpent
 FROM 
     [CompanyX].[Sales].[SalesOrderHeader2] AS soh
 JOIN 
     [CompanyX].[Sales].[SalesOrderDetail] AS sod 
     ON soh.SalesOrderID = sod.SalesOrderID
+LEFT JOIN 
+    -- Subquery for TotalFrequency
+    (
+        SELECT 
+            CustomerID,
+            COUNT(SalesOrderID) AS TotalFrequency
+        FROM 
+            [CompanyX].[Sales].[SalesOrderHeader]
+        GROUP BY 
+            CustomerID
+    ) AS tf
+    ON soh.CustomerID = tf.CustomerID
+LEFT JOIN 
+    -- Subquery for TotalSpent
+    (
+        SELECT 
+            CustomerID,
+            SUM(TotalDue) AS TotalSpent
+        FROM 
+            [CompanyX].[Sales].[SalesOrderHeader]
+        GROUP BY 
+            CustomerID
+    ) AS ts
+    ON soh.CustomerID = ts.CustomerID
 WHERE 
     soh.SalesOrderID NOT IN (
         SELECT SalesOrderID 
