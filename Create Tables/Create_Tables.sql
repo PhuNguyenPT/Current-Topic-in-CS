@@ -68,7 +68,6 @@ CREATE TABLE dbo.FactCustomerChurn (
         StoreChurnRatio NUMERIC(3,2),                -- Store-specific churn ratio
         ProductID INT,                               -- Foreign Key to Product table
         SpecialOfferID INT,                          -- Foreign Key to Special Offer table
-        TotalSpentID INT,                            -- Identifier for total spending data
         SubTotal NUMERIC(20,2),                      -- Subtotal of a purchase
         Tax NUMERIC(20,2),                           -- Tax amount
         Freight NUMERIC(20,2),                       -- Freight cost
