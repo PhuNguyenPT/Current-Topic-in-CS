@@ -44,8 +44,8 @@ CREATE TABLE test.dbo.DimStoreFreqScore (
 );
 
 
-CREATE TABLE test.dbo.DimStoreChurnRatio (
+CREATE TABLE test.dbo.DimStoreChurnScore (
     StoreChurnRatioID INT IDENTITY(1,1) PRIMARY KEY,   -- Unique identifier for each record
     StoreFreqScore INT NOT NULL,
-    ChurnRatio VARCHAR(255)            -- Stores the churn ratio
+    ChurnLevel VARCHAR(255)            -- Stores the churn ratio
 );
