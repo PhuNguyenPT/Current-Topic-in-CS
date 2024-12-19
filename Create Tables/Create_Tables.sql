@@ -64,6 +64,7 @@ CREATE TABLE test.dbo.FactCustomerChurn (
         SalesOrderID INT,                            -- Identifier for a sales order
 		SalesPersonID INT,
         TotalFrequency INT,                          -- Total frequency of customer orders
+        TotalStoreFrequency INT,                     -- Total frequency of store orders
         StoreFrequencyScore INT,                     -- Frequency score per store
         StoreChurnRatio NUMERIC(3,2),                -- Store-specific churn ratio
         ProductID INT,                               -- Foreign Key to Product table
