@@ -50,7 +50,7 @@ CREATE TABLE test.dbo.DimStore (
 --    TotalSpent DECIMAL(20, 2)                    -- Stores the total amount spent
 --);
 
-CREATE TABLE dbo.FactCustomerChurn (
+CREATE TABLE test.dbo.FactCustomerChurn (
         FactID INT IDENTITY(1,1) PRIMARY KEY,        -- Unique identifier for each record
         DateID INT ,								 -- Foreign Key to DimDate table
         ChurnScore INT,                              -- Score representing churn risk
