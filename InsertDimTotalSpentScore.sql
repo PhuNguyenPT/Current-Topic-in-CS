@@ -14,7 +14,7 @@ GlobalMinMax AS (
         MIN(TotalSpent) AS GlobalMin,  -- Earliest order date (oldest)
         MAX(TotalSpent) AS GlobalMax   -- Latest order date (most recent)
     FROM 
-        TotalFrequencyData
+        TotalSpentData
 ),
 QuantileData AS (
     -- Get the Quantile values for TotalSpent in Quantiles 2 to 4
