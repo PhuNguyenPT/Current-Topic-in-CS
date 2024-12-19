@@ -1,5 +1,14 @@
 USE test;
 
+DROP TABLE IF EXISTS test.dbo.DimTotalFreqScore;
+DROP TABLE IF EXISTS test.dbo.DimChurnRatio;
+DROP TABLE IF EXISTS test.dbo.DimRecencyScore;
+DROP TABLE IF EXISTS test.dbo.DimTotalSpentScore;
+DROP TABLE IF EXISTS test.dbo.DimChurnScore;
+DROP TABLE IF EXISTS test.dbo.DimStoreFreqScore;
+DROP TABLE IF EXISTS test.dbo.DimStoreChurnScore;
+
+
 CREATE TABLE test.dbo.DimTotalFreqScore (
     TotalFreqScoreID INT IDENTITY(1,1) PRIMARY KEY,
     Score INT NOT NULL,

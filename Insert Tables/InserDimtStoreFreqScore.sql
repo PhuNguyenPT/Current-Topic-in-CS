@@ -1,3 +1,7 @@
+-- Delete all Data
+DELETE FROM test.dbo.DimStoreFreqScore;
+
+
 WITH TotalStoreFreqData AS (
     SELECT 
 		soh.CustomerID,
