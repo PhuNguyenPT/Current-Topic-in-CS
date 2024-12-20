@@ -4,7 +4,6 @@ USE test;
 DROP TABLE IF EXISTS dbo.FactCustomerChurn;
 DROP TABLE IF EXISTS dbo.DimCustomer;
 DROP TABLE IF EXISTS dbo.DimDate;
--- DROP TABLE IF EXISTS dbo.DimStore;
 DROP TABLE IF EXISTS dbo.DimSalesPerson;
 
 -- Create DimDate table in dbo schema
@@ -61,29 +60,3 @@ CREATE TABLE test.dbo.DimSalesPerson (
     CurrentSalesPersonFrequency INT,
     CurrentSalesPersonFrequencyScore INT
 );
-
-
----------------------------------------------------------------------------------------------------------------------
-
--- Create DimStore table in dbo schema
--- CREATE TABLE test.dbo.DimStore (
---     StoreID INT IDENTITY(1,1) PRIMARY KEY,              -- From Sales.Store.BusinessEntityID
--- 	BusinessEntityID INT,
--- 	SalesPersonID INT,
---     StoreName NVARCHAR(255),              -- From Sales.Store.Name
---     AddressLine1 NVARCHAR(255),            -- From Person.Address.AddressLine1
---     AddressLine2 NVARCHAR(255),            -- From Person.Address.AddressLine2
---     PostalCode NVARCHAR(20),              -- From Person.Address.PostalCode
---     CountryRegionCode NVARCHAR(2),       -- From Person.StateProvince.CountryRegionCode
---     StateName NVARCHAR(255),               -- From Person.StateProvince.Name
---     CurrentStoreFrequencyScore INT        -- To be populated later (left empty for now)
--- );
-
---CREATE TABLE dbo.DimTotalSpent (
---    TotalSpentID INT IDENTITY(1,1) PRIMARY KEY,  -- Auto-incremented primary key
---    SubTotal DECIMAL(20, 2),                     -- Stores the subtotal amount
---   Tax DECIMAL(20, 2),                          -- Stores the tax amount
---    Freight DECIMAL(20, 2),                      -- Stores the freight/shipping cost
---    TotalDue DECIMAL(20, 2),                     -- Stores the total due amount
---    TotalSpent DECIMAL(20, 2)                    -- Stores the total amount spent
---);
