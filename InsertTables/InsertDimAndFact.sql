@@ -172,13 +172,15 @@ ON tss.LowerLimit <= CAST(md.TotalSpent AS DECIMAL(20, 4)) AND CAST(md.TotalSpen
 -- 	s.BusinessEntityID;
 --------------------------------------------------------------------------------------
 
+
+
 WITH SalesOrder AS (
 	SELECT
 		soh.SalesOrderID,
 		CASE 
             WHEN soh.SalesPersonID IS NULL THEN -1 
-            ELSE soh.SalesOrderID 
-		END as SalesPersonID,
+            ELSE soh.SalesPersonID 
+		END AS SalesPersonID,
 		soh.SubTotal,
 		soh.TaxAmt,
 		soh.Freight,
@@ -187,21 +189,33 @@ WITH SalesOrder AS (
 		soh.CustomerID
 	FROM 
 		[CompanyX].[Sales].[SalesOrderHeader] AS soh
-)
-, 
+), 
+
+SalesPersonData AS (
+	SELECT 
+		CustomerID,
+		SalesPersonID
+	FROM
+		SalesOrder
+	GROUP BY
+		CustomerID,
+		SalesPersonID
+), 
+
 SalesPersonFrequencyData AS (
 	SELECT 
-		so.CustomerID, 
-		so.SalesPersonID,
+		spd.CustomerID, 
+		spd.SalesPersonID,
     COUNT(CASE 
-            WHEN so.SalesPersonID IS NULL THEN -1 
-            ELSE so.SalesOrderID 
+            WHEN spd.SalesPersonID IS NULL THEN -1 
+            ELSE spd.SalesPersonID 
          END) AS SalesPersonFrequency
 	FROM 
-		SalesOrder so
+		SalesPersonData spd
 	GROUP BY 
-		so.SalesPersonID, so.CustomerID
+		spd.SalesPersonID, spd.CustomerID
 ),
+
 MetricData AS (
 	SELECT 
 		CustomerID,
@@ -317,6 +331,41 @@ Order By DateID, SalesOrderID;
 
 --------------------------------------------------------------------------------------
 
+WITH SalesPersonData AS (
+	SELECT 
+		CustomerID,
+		SalesPersonID
+	FROM
+		[CompanyX].[Sales].[SalesOrderHeader] as soh
+	GROUP BY
+		CustomerID,
+		SalesPersonID
+), 
+
+ConvertedSalesPersonData AS (
+	SELECT	
+		CustomerID,
+		CASE 
+			WHEN d.SalesPersonID IS NULL THEN -1 
+			ELSE d.SalesPersonID 
+		END AS SalesPersonID
+	FROM SalesPersonData  d
+),
+
+
+SalesPersonFrequencyData AS (
+	SELECT 
+		cspd.CustomerID, 
+		cspd.SalesPersonID,
+    COUNT(CASE 
+            WHEN cspd.SalesPersonID IS NULL THEN -1 
+            ELSE cspd.SalesPersonID 
+         END) AS SalesPersonFrequency
+	FROM 
+		ConvertedSalesPersonData cspd
+	GROUP BY 
+		cspd.SalesPersonID, cspd.CustomerID
+)
 
 -- Change DimSalesPerson
 INSERT INTO test.dbo.DimSalesPerson(
@@ -330,39 +379,34 @@ INSERT INTO test.dbo.DimSalesPerson(
 )
 
 SELECT DISTINCT
-    CASE
-        WHEN soh.SalesPersonID IS NULL THEN -1
-        ELSE soh.SalesPersonID
-    END AS SalesPersonID,
-    soh.CustomerID,
-    p.FirstName,
-    p.MiddleName,
-    p.LastName,
+    cspd.SalesPersonID,
+    cspd.CustomerID,
+    CASE 
+		WHEN p.FirstName IS NULL THEN 'Unknown'
+		ELSE p.FirstName
+	END AS FirstName,
+    CASE 
+		WHEN p.MiddleName IS NULL THEN 'Unknown'
+		ELSE p.MiddleName
+	END AS MiddleName,
+    CASE 
+		WHEN p.LastName IS NULL THEN 'Unknown'
+		ELSE p.LastName
+	END AS LastName,
     spf.SalesPersonFrequency AS CurrentSalesPersonFrequency,
 	spfs.Score AS CurrentSalesPersonFrequencyScore
 FROM 
-    [CompanyX].[Sales].[SalesOrderHeader] AS soh
-LEFT JOIN 
-	[CompanyX].[Sales].[SalesPerson] AS sp
-    ON sp.BusinessEntityID = soh.SalesPersonID
+	ConvertedSalesPersonData cspd
+
 LEFT JOIN 
     [CompanyX].[Person].[Person] AS p 
-    ON sp.BusinessEntityID = p.BusinessEntityID
-LEFT JOIN 
-    ( -- Subquery to calculate SalesPersonFrequency
-        SELECT 
-            SalesPersonID, 
-            CustomerID, 
-            COUNT(SalesOrderID) AS SalesPersonFrequency
-        FROM 
-            [CompanyX].[Sales].[SalesOrderHeader]
-        GROUP BY 
-            SalesPersonID, CustomerID
-    ) AS spf
-    ON sp.BusinessEntityID = spf.SalesPersonID 
-    AND soh.CustomerID = spf.CustomerID
-LEFT JOIN test.dbo.DimSalesPersonFreqScore spfs
-	ON spfs.LowerLimit <= spf.SalesPersonFrequency AND spf.SalesPersonFrequency < spfs.UpperLimit
+ON cspd.SalesPersonID = p.BusinessEntityID
 
-    
+LEFT JOIN
+		SalesPersonFrequencyData spf
+ON cspd.CustomerID = spf.CustomerID AND
+		cspd.SalesPersonID = spf.SalesPersonID
+
+LEFT JOIN test.dbo.DimSalesPersonFreqScore spfs
+ON spfs.LowerLimit <= spf.SalesPersonFrequency AND spf.SalesPersonFrequency < spfs.UpperLimit
 --------------------------------------------------------------------------------------
