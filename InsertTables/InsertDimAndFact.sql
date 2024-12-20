@@ -328,10 +328,11 @@ INSERT INTO test.dbo.DimSalesPerson(
     CurrentSalesPersonFrequency,
 	CurrentSalesPersonFrequencyScore
 )
+
 SELECT DISTINCT
     CASE
-        WHEN sp.BusinessEntityID IS NULL THEN -1
-        ELSE sp.BusinessEntityID
+        WHEN soh.SalesPersonID IS NULL THEN -1
+        ELSE soh.SalesPersonID
     END AS SalesPersonID,
     soh.CustomerID,
     p.FirstName,
@@ -340,11 +341,11 @@ SELECT DISTINCT
     spf.SalesPersonFrequency AS CurrentSalesPersonFrequency,
 	spfs.Score AS CurrentSalesPersonFrequencyScore
 FROM 
-    [CompanyX].[Sales].[SalesPerson] AS sp
-JOIN 
     [CompanyX].[Sales].[SalesOrderHeader] AS soh
+LEFT JOIN 
+	[CompanyX].[Sales].[SalesPerson] AS sp
     ON sp.BusinessEntityID = soh.SalesPersonID
-JOIN 
+LEFT JOIN 
     [CompanyX].[Person].[Person] AS p 
     ON sp.BusinessEntityID = p.BusinessEntityID
 LEFT JOIN 
@@ -361,7 +362,7 @@ LEFT JOIN
     ON sp.BusinessEntityID = spf.SalesPersonID 
     AND soh.CustomerID = spf.CustomerID
 LEFT JOIN test.dbo.DimSalesPersonFreqScore spfs
-	ON spfs.LowerLimit <= spf.SalesPersonFrequency AND spf.SalesPersonFrequency < spfs.UpperLimit;
+	ON spfs.LowerLimit <= spf.SalesPersonFrequency AND spf.SalesPersonFrequency < spfs.UpperLimit
 
     
 --------------------------------------------------------------------------------------
