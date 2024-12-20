@@ -70,115 +70,90 @@ ON
 --------------------------------------------------------------------------------------
 
 
-WITH LatestOrderDates AS (
-    SELECT 
-        CustomerID,
-        MAX(OrderDate) AS LatestOrderDate
-    FROM 
-        [CompanyX].[Sales].[SalesOrderHeader]
-    GROUP BY 
-        CustomerID
-),
-
-RecencyData AS (
-    -- Step 2: Calculate days since the last order for each customer
-    SELECT 
-        CustomerID,
-        DATEDIFF(DAY, LatestOrderDate, GETDATE()) AS Recency
-    FROM 
-        LatestOrderDates
-),
-
--- TotalStoreFrequencyData AS (
--- 	SELECT 
--- 		soh.CustomerID, 
--- 		s.BusinessEntityID AS StoreID,
--- 		COUNT(soh.SalesOrderID) AS TotalStoreFrequency
--- 	FROM 
--- 		[CompanyX].[Sales].[SalesOrderHeader] soh
--- 	LEFT JOIN 
--- 		[CompanyX].[Sales].[Store] s 
--- 	ON 
--- 		soh.SalesPersonID = s.SalesPersonID
--- 	GROUP BY 
--- 		s.BusinessEntityID, soh.CustomerID
--- ),
-
-TotalFrequencyData AS (
-	SELECT 
-		CustomerID,
-		COUNT(SalesOrderID) AS TotalFrequency
+WITH SalesOrder AS (
+	SELECT
+		soh.SalesOrderID,
+		CASE 
+            WHEN soh.SalesPersonID IS NULL THEN -1 
+            ELSE soh.SalesOrderID 
+		END as SalesPersonID,
+		soh.SubTotal,
+		soh.TaxAmt,
+		soh.Freight,
+		soh.TotalDue,
+		soh.OrderDate,
+		soh.CustomerID
 	FROM 
-		[CompanyX].[Sales].[SalesOrderHeader]
-	GROUP BY 
-		CustomerID
-),
-
-TotalSpentData AS (
-	SELECT 
-		CustomerID,
-		SUM(TotalDue) AS TotalSpent
-	FROM 
-		[CompanyX].[Sales].[SalesOrderHeader]
-	GROUP BY 
-		CustomerID
-),
-
-ChurnScoreData AS (
-	SELECT [ChurnScoreID]
-			,[ChurnScore]
-			,[LowerLimit]
-			,[UpperLimit]
-			,[ChurnLevel]
-	FROM 
-		[test].[dbo].[DimChurnScore]
-),
-
-ChurnRatioData AS (
-    SELECT [ChurnRatioID]
-            ,[ChurnRatio]
-    FROM 
-        [test].[dbo].[DimChurnRatio]
-),
-
-TotalFrequencyScoreData AS (
-	SELECT [TotalFreqScoreID]
-		  ,[Score]
-		  ,[LowerLimit]
-		  ,[UpperLimit]
-	  FROM [test].[dbo].[DimTotalFreqScore]
-),
-
-RecencyScoreData AS (
-	SELECT [RecencyScoreID]
-		  ,[Score]
-		  ,[LowerLimit]
-		  ,[UpperLimit]
-	  FROM [test].[dbo].[DimRecencyScore]
-),
-
-TotalSpentScoreData AS (
-	SELECT [TotalSpentScoreID]
-		  ,[Score]
-		  ,[LowerLimit]
-		  ,[UpperLimit]
-	  FROM [test].[dbo].[DimTotalSpentScore]
-),
-
-SalesPersonFrequencyData AS (
-    SELECT 
-        CustomerID,
-        SalesPersonID,
-        COUNT(SalesOrderID) AS SalesPersonFrequency
-    FROM 
-        [CompanyX].[Sales].[SalesOrderHeader]
-    GROUP BY 
-        CustomerID, SalesPersonID
+		[CompanyX].[Sales].[SalesOrderHeader] AS soh
 )
---------------------------------------------------------------------------------------
+, 
+SalesPersonFrequencyData AS (
+	SELECT 
+		so.CustomerID, 
+		so.SalesPersonID,
+    COUNT(CASE 
+            WHEN so.SalesPersonID IS NULL THEN -1 
+            ELSE so.SalesOrderID 
+         END) AS SalesPersonFrequency
+	FROM 
+		SalesOrder so
+	GROUP BY 
+		so.SalesPersonID, so.CustomerID
+),
+MetricData AS (
+	SELECT 
+		CustomerID,
+		MAX(OrderDate) AS LatestOrderDate,
+		SUM(TotalDue) AS TotalSpent,
+		COUNT(SalesOrderID) AS TotalFrequency,
+		DATEDIFF(DAY, MAX(OrderDate), GETDATE()) AS Recency
+	FROM 
+		SalesOrder
+	GROUP BY 
+		CustomerID
+)
+,
+ChurnRatioData AS (
+	SELECT 
+		so.OrderDate,
+		so.CustomerID,
+		CAST(( (tfs.Score + rs.Score + tss.Score + spfs.Score) / 40.000 ) AS DECIMAL(4, 3)) AS ChurnRatio, 
+		tfs.Score AS TotalFrequencyScore,
+		rs.Score AS RecencyScore,
+		tss.Score AS TotalSpentScore,
+		md.Recency,
+		so.SalesOrderID,
+		so.SalesPersonID,
+		md.TotalFrequency,
+		spf.SalesPersonFrequency,
+		spfs.Score AS SalesPersonFrequencyScore,
+		CAST(so.SubTotal AS DECIMAL(20, 4)) AS SubTotal,
+		CAST(so.TaxAmt AS DECIMAL(20, 4)) AS TaxAmt,
+		CAST(so.Freight AS DECIMAL(20, 4)) AS Freight,
+		CAST(so.TotalDue AS DECIMAL(20, 4)) AS TotalDue,
+		CAST(md.TotalSpent AS DECIMAL(20, 4)) AS TotalSpent
+	FROM 
+	SalesOrder so
+	JOIN
+		MetricData md
+	ON so.CustomerID = md.CustomerID
+	LEFT JOIN
+		SalesPersonFrequencyData spf
+	ON so.CustomerID = spf.CustomerID AND
+		so.SalesPersonID = spf.SalesPersonID
 
+	LEFT JOIN test.dbo.DimTotalFreqScore tfs
+	ON tfs.LowerLimit <= md.TotalFrequency AND md.TotalFrequency < tfs.UpperLimit
 
+	LEFT JOIN test.dbo.DimRecencyScore rs
+	ON  rs.LowerLimit <= md.Recency AND md.Recency < rs.UpperLimit
 
+	LEFT JOIN test.dbo.DimTotalSpentScore tss
+	ON tss.LowerLimit <= CAST(md.TotalSpent AS DECIMAL(20, 4)) AND CAST(md.TotalSpent AS DECIMAL(20, 4)) < tss.UpperLimit
+
+	LEFT JOIN test.dbo.DimSalesPersonFreqScore spfs
+	ON spfs.LowerLimit <= spf.SalesPersonFrequency AND spf.SalesPersonFrequency < spfs.UpperLimit
+)
 -- Change FactCustomerChurn
 INSERT INTO test.dbo.FactCustomerChurn (
        [DateID],
@@ -201,162 +176,42 @@ INSERT INTO test.dbo.FactCustomerChurn (
        [TotalSpent]
 )
 SELECT 
-    (
-        SELECT TOP 1 dd.DateID
-        FROM test.dbo.DimDate dd
-        WHERE DAY(soh.OrderDate) = dd.Day
-        AND MONTH(soh.OrderDate) = dd.Month
-        AND YEAR(soh.OrderDate) = dd.Year
-    ) AS DateID,
-
-
-
-    -- (
-    --     SELECT TOP 1 cs.ChurnScore
-    --     FROM ChurnScoreData cs
-    --     WHERE dcr.ChurnRatio BETWEEN cs.LowerLimit AND cs.UpperLimit
-    -- ) AS [ChurnScore],
-
-    -- dcr.ChurnRatio,
-    
-    (
-    SELECT TOP 1 dcr.ChurnRatio
-    FROM test.dbo.DimChurnRatio dcr
-    WHERE 
-        dcr.TotalFrequencyScore = (
-            SELECT TOP 1 Score
-            FROM test.dbo.DimTotalFreqScore
-            WHERE tf.TotalFrequency BETWEEN LowerLimit AND UpperLimit
-        )
-        AND dcr.RecencyScore = (
-            SELECT TOP 1 Score
-            FROM test.dbo.DimRecencyScore
-            WHERE r.Recency BETWEEN LowerLimit AND UpperLimit
-        )
-        AND dcr.TotalSpentScore = (
-            SELECT TOP 1 Score
-            FROM test.dbo.DimTotalSpentScore
-            WHERE ts.TotalSpent BETWEEN LowerLimit AND UpperLimit
-        )
-        AND dcr.SalesPersonFreqScore = (
-            SELECT TOP 1 Score
-            FROM test.dbo.DimSalesPersonFreqScore
-            WHERE spf.SalesPersonFrequency BETWEEN LowerLimit AND UpperLimit
-        )
-    ) AS [ChurnRatio],
-    
-    (
-        SELECT TOP 1 tfs.Score
-        FROM test.dbo.DimTotalFreqScore tfs
-        WHERE tf.TotalFrequency BETWEEN tfs.LowerLimit AND tfs.UpperLimit
-    ) AS [TotalFrequencyScore],
-    
-    (
-        SELECT TOP 1 rs.Score
-        FROM RecencyScoreData rs
-        WHERE r.Recency BETWEEN rs.LowerLimit AND rs.UpperLimit
-    ) AS [RecencyScore],
-
-    (
-        SELECT TOP 1 dts.Score
-        FROM test.dbo.DimTotalSpentScore dts
-        WHERE ts.TotalSpent BETWEEN dts.LowerLimit AND dts.UpperLimit
-    ) AS [TotalSpentScore],
-
-    (
-        SELECT TOP 1 dc.CustomerID
-        FROM test.dbo.DimCustomer dc
-        WHERE soh.CustomerID = dc.CustomerID
-    ) AS CustomerID,
-
-    r.Recency,
-    soh.SalesOrderID,
-	CASE
-        WHEN soh.SalesPersonID IS NULL THEN -1
-        ELSE soh.SalesPersonID
-    END AS SalesPersonID,
-    tf.TotalFrequency,
-
-    spf.SalesPersonFrequency,
-    
-    (
-        SELECT TOP 1 spfs.Score
-        FROM test.dbo.DimSalesPersonFreqScore spfs
-        WHERE spf.SalesPersonFrequency BETWEEN spfs.LowerLimit AND spfs.UpperLimit
-    ) AS [SalesPersonFrequencyScore],
-
-    soh.SubTotal,
-    soh.TaxAmt AS Tax,
-    soh.Freight,
-    soh.TotalDue,
-    ts.TotalSpent
+	dd.DateID,
+	cs.ChurnScore,
+	crd.ChurnRatio, 
+	crd.TotalFrequencyScore,
+	crd.RecencyScore,
+	crd.TotalSpentScore,
+	dc.CustomerID,
+	crd.Recency,
+	crd.SalesOrderID,
+	crd.SalesPersonID,
+	crd.TotalFrequency,
+	crd.SalesPersonFrequency,
+	crd.SalesPersonFrequencyScore,
+	crd.SubTotal,
+	crd.TaxAmt,
+	crd.Freight,
+	crd.TotalDue,
+	crd.TotalSpent
 
 FROM 
-    [CompanyX].[Sales].[SalesOrderHeader] AS soh
+	ChurnRatioData crd
 
-LEFT JOIN
-    (
-        SELECT
-            CustomerID,
-            TotalFrequency
-        FROM TotalFrequencyData
-    ) AS tf
-ON soh.CustomerID = tf.CustomerID
+JOIN test.dbo.DimDate dd
+ON DAY(crd.OrderDate) = dd.Day
+   AND MONTH(crd.OrderDate) = dd.Month
+   AND YEAR(crd.OrderDate) = dd.Year
 
-LEFT JOIN
-    (
-        SELECT
-            CustomerID,
-            Recency
-        FROM 
-            RecencyData
-    ) AS r
-ON soh.CustomerID = r.CustomerID
+JOIN test.dbo.DimCustomer dc
+ON crd.CustomerID = dc.CustomerID
 
-LEFT JOIN
-    (
-        SELECT
-            CustomerID,
-            TotalSpent
-        FROM 
-            TotalSpentData
-    ) AS ts
-ON soh.CustomerID = ts.CustomerID
+LEFT JOIN test.dbo.DimChurnScore cs
+    ON cs.LowerLimit <= crd.ChurnRatio AND crd.ChurnRatio < cs.UpperLimit
 
-LEFT JOIN
-    (
-        SELECT
-            CustomerID,
-            SalesPersonID,
-            SalesPersonFrequency
-        FROM 
-            SalesPersonFrequencyData
-    ) AS spf
-ON soh.CustomerID = spf.CustomerID
-AND soh.SalesPersonID = spf.SalesPersonID
+Order By DateID, SalesOrderID
 
--- LEFT JOIN
---     (
---         SELECT 
---             tf.Score AS TotalFrequencyScore,
---             r.Score AS RecencyScore,
---             ts.Score AS TotalSpentScore,
---             spf.Score AS SalesPersonFreqScore,
---             dcr.ChurnRatio
---         FROM 
---             test.dbo.DimChurnRatio dcr
---         JOIN test.dbo.DimTotalFreqScore tf ON dcr.TotalFrequencyScore = tf.Score
---         JOIN test.dbo.DimRecencyScore r ON dcr.RecencyScore = r.Score
---         JOIN test.dbo.DimTotalSpentScore ts ON dcr.TotalSpentScore = ts.Score
---         JOIN test.dbo.DimSalesPersonFreqScore spf ON dcr.SalesPersonFreqScore = spf.Score
---     ) AS dcr
--- ON tf.Score = dcr.TotalFrequencyScore
--- AND r.Score = dcr.RecencyScore
--- AND ts.Score = dcr.TotalSpentScore
--- AND spf.Score = dcr.SalesPersonFreqScore
 
-ORDER BY 
-    soh.SalesOrderID;
 --------------------------------------------------------------------------------------
 
 
@@ -400,4 +255,6 @@ LEFT JOIN
     ) AS spf
     ON sp.BusinessEntityID = spf.SalesPersonID 
     AND soh.CustomerID = spf.CustomerID;
+
+    
 --------------------------------------------------------------------------------------
