@@ -1,7 +1,6 @@
--- Use the target database
+-- Updated Update Script for FactCustomerChurn
 USE test;
 ------------------------------------------------------------------------------------------------------
-
 
 -- Update existing records in FactCustomerChurn if there are changes in SalesOrderHeader
 UPDATE fcc
@@ -17,11 +16,6 @@ SET
         SELECT TOP 1 dc.CustomerID
         FROM test.dbo.DimCustomer dc
         WHERE soh.CustomerID = dc.CustomerID
-    ),
-    fcc.StoreID = (
-        SELECT TOP 1 ds.StoreID
-        FROM test.dbo.DimStore ds
-        WHERE soh.SalesPersonID = ds.SalesPersonID
     ),
     fcc.SalesPersonID = soh.SalesPersonID,
     fcc.SubTotal = soh.SubTotal,
@@ -48,11 +42,6 @@ WHERE
             FROM test.dbo.DimCustomer dc
             WHERE soh.CustomerID = dc.CustomerID
         )
-        OR fcc.StoreID <> (
-            SELECT TOP 1 ds.StoreID
-            FROM test.dbo.DimStore ds
-            WHERE soh.SalesPersonID = ds.SalesPersonID
-        )
         OR fcc.SalesPersonID <> soh.SalesPersonID
         OR fcc.SubTotal <> soh.SubTotal
         OR fcc.Tax <> soh.TaxAmt
@@ -61,18 +50,12 @@ WHERE
     );
 ------------------------------------------------------------------------------------------------------
 
-
-
-
 -- Update FactCustomerChurn with TotalFrequency and TotalSpent
 INSERT INTO dbo.FactCustomerChurn (
     DateID, 
     CustomerID, 
-    StoreID, 
     SalesOrderID, 
     SalesPersonID, 
-    ProductID, 
-    SpecialOfferID, 
     SubTotal, 
     Tax, 
     Freight, 
@@ -95,16 +78,8 @@ SELECT
         FROM test.dbo.DimCustomer dc
         WHERE soh.CustomerID = dc.CustomerID
     ) AS CustomerID,
-    -- Map StoreID from DimStore
-    (
-        SELECT TOP 1 ds.StoreID
-        FROM test.dbo.DimStore ds
-        WHERE soh.SalesPersonID = ds.SalesPersonID
-    ) AS StoreID,
     soh.SalesOrderID,
     soh.SalesPersonID,
-    sod.ProductID,
-    sod.SpecialOfferID,
     soh.SubTotal,
     soh.TaxAmt AS Tax,
     soh.Freight,
@@ -113,9 +88,6 @@ SELECT
     ts.TotalSpent
 FROM 
     [CompanyX].[Sales].[SalesOrderHeader2] AS soh
-JOIN 
-    [CompanyX].[Sales].[SalesOrderDetail] AS sod 
-    ON soh.SalesOrderID = sod.SalesOrderID
 LEFT JOIN 
     -- Subquery for TotalFrequency
     (
