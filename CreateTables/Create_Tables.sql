@@ -73,10 +73,14 @@ CREATE TABLE test.dbo.FactCustomerChurn (
         TotalSpent NUMERIC(20,2)                     -- Total spending by the customer
     );
 
--- Create DimCustomer table in dbo schema
+-- Create DimSalesPerson table in dbo schema
 CREATE TABLE test.dbo.DimSalesPerson (
-    SalesPersonID INT PRIMARY KEY,
+    PRIMARY KEY (SalesPersonID, CustomerID), -- Composite primary key
+    SalesPersonID INT NOT NULL,
     FirstName NVARCHAR(255),
     MiddleName NVARCHAR(255),
     LastName NVARCHAR(255),
+    CustomerID INT NOT NULL,
+    CurrentSalesPersonFrequency INT,
+    CurrentSalesPersonFrequencyScore INT
 );

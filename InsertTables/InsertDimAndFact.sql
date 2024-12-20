@@ -156,6 +156,17 @@ TotalSpentScoreData AS (
 		  ,[LowerLimit]
 		  ,[UpperLimit]
 	  FROM [test].[dbo].[DimTotalSpentScore]
+),
+
+SalesPersonFrequencyData AS (
+    SELECT 
+        CustomerID,
+        SalesPersonID,
+        COUNT(SalesOrderID) AS SalesPersonFrequency
+    FROM 
+        [CompanyX].[Sales].[SalesOrderHeader]
+    GROUP BY 
+        CustomerID, SalesPersonID
 )
 --------------------------------------------------------------------------------------
 
@@ -205,10 +216,13 @@ SELECT
 
     r.Recency,
     soh.SalesOrderID,
-    soh.SalesPersonID,
+	CASE
+        WHEN soh.SalesPersonID IS NULL THEN -1
+        ELSE soh.SalesPersonID
+    END AS SalesPersonID,
     tf.TotalFrequency,
 
-    NULL AS [SalesPersonFrequency],
+    spf.SalesPersonFrequency,
     NULL AS [SalesPersonFrequencyScore],
 
     soh.SubTotal,
@@ -248,23 +262,62 @@ LEFT JOIN
             TotalSpentData
     ) AS ts
 ON soh.CustomerID = ts.CustomerID
-    
+
+LEFT JOIN
+    (
+        SELECT
+            CustomerID,
+            SalesPersonID,
+            SalesPersonFrequency
+        FROM 
+            SalesPersonFrequencyData
+    ) AS spf
+ON soh.CustomerID = spf.CustomerID
+AND soh.SalesPersonID = spf.SalesPersonID
+
 ORDER BY 
     soh.SalesOrderID;
 --------------------------------------------------------------------------------------
 
 
 -- Change DimSalesPerson
-INSERT INTO test.dbo.DimSalesPerson(SalesPersonID, FirstName, MiddleName, LastName)
-SELECT 
-    sp.BusinessEntityID AS SalesPersonID,
+INSERT INTO test.dbo.DimSalesPerson(
+    SalesPersonID,
+    CustomerID,
+    FirstName,
+    MiddleName,
+    LastName,
+    CurrentSalesPersonFrequency
+)
+SELECT DISTINCT
+    CASE
+        WHEN sp.BusinessEntityID IS NULL THEN -1
+        ELSE sp.BusinessEntityID
+    END AS SalesPersonID,
+    soh.CustomerID,
     p.FirstName,
     p.MiddleName,
-    p.LastName
+    p.LastName,
+    ISNULL(spf.SalesPersonFrequency, 0) AS CurrentSalesPersonFrequency
 FROM 
     [CompanyX].[Sales].[SalesPerson] AS sp
 JOIN 
+    [CompanyX].[Sales].[SalesOrderHeader] AS soh
+    ON sp.BusinessEntityID = soh.SalesPersonID
+JOIN 
     [CompanyX].[Person].[Person] AS p 
-ON 
-    sp.BusinessEntityID = p.BusinessEntityID;
+    ON sp.BusinessEntityID = p.BusinessEntityID
+LEFT JOIN 
+    ( -- Subquery to calculate SalesPersonFrequency
+        SELECT 
+            SalesPersonID, 
+            CustomerID, 
+            COUNT(SalesOrderID) AS SalesPersonFrequency
+        FROM 
+            [CompanyX].[Sales].[SalesOrderHeader]
+        GROUP BY 
+            SalesPersonID, CustomerID
+    ) AS spf
+    ON sp.BusinessEntityID = spf.SalesPersonID 
+    AND soh.CustomerID = spf.CustomerID;
 --------------------------------------------------------------------------------------
