@@ -1,7 +1,3 @@
--- This query updates values of LowerLimit and UpperLimit
--- by changing calculation values in ScoreRanges
--- (eg: changed "/ 10" to "/ 12")
-
 WITH TotalFrequencyData AS (
     SELECT 
         CustomerID,
@@ -41,11 +37,11 @@ ScoreRanges AS (
         Score,
         CASE 
             WHEN Score = 1 THEN (SELECT GlobalMin FROM GlobalMinMax)
-            ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 12.0 * (Score - 1)
+            ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 10.0 * (Score - 1)
         END AS LowerLimit,
         CASE 
             WHEN Score = 10 THEN (SELECT GlobalMax + 1.00 FROM GlobalMinMax)
-            ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 12.0 * Score
+            ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 10.0 * Score
         END AS UpperLimit
     FROM 
         (SELECT 1 AS Score UNION ALL 
