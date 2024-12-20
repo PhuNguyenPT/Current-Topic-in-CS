@@ -84,7 +84,7 @@ ChurnRatioData AS (
 )
 SELECT 
 	dd.DateID,
-	--cs.ChurnScore,
+	cs.ChurnScore,
 	crd.ChurnRatio, 
 	crd.TotalFrequencyScore,
 	crd.RecencyScore,
