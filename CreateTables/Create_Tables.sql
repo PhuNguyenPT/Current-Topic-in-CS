@@ -4,7 +4,6 @@ USE test;
 DROP TABLE IF EXISTS dbo.FactCustomerChurn;
 DROP TABLE IF EXISTS dbo.DimCustomer;
 DROP TABLE IF EXISTS dbo.DimDate;
-DROP TABLE IF EXISTS dbo.DimStore;
 DROP TABLE IF EXISTS dbo.DimSalesPerson;
 
 -- Create DimDate table in dbo schema
