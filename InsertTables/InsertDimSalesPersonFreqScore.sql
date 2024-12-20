@@ -1,3 +1,6 @@
+DELETE FROM test.dbo.DimSalesPersonFreqScore;
+
+
 WITH SalesPersonFreqData AS (
     SELECT 
 		soh.CustomerID,

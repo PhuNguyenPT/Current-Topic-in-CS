@@ -89,20 +89,20 @@ RecencyData AS (
         LatestOrderDates
 ),
 
-TotalStoreFrequencyData AS (
-	SELECT 
-		soh.CustomerID, 
-		s.BusinessEntityID AS StoreID,
-		COUNT(soh.SalesOrderID) AS TotalStoreFrequency
-	FROM 
-		[CompanyX].[Sales].[SalesOrderHeader] soh
-	LEFT JOIN 
-		[CompanyX].[Sales].[Store] s 
-	ON 
-		soh.SalesPersonID = s.SalesPersonID
-	GROUP BY 
-		s.BusinessEntityID, soh.CustomerID
-),
+-- TotalStoreFrequencyData AS (
+-- 	SELECT 
+-- 		soh.CustomerID, 
+-- 		s.BusinessEntityID AS StoreID,
+-- 		COUNT(soh.SalesOrderID) AS TotalStoreFrequency
+-- 	FROM 
+-- 		[CompanyX].[Sales].[SalesOrderHeader] soh
+-- 	LEFT JOIN 
+-- 		[CompanyX].[Sales].[Store] s 
+-- 	ON 
+-- 		soh.SalesPersonID = s.SalesPersonID
+-- 	GROUP BY 
+-- 		s.BusinessEntityID, soh.CustomerID
+-- ),
 
 TotalFrequencyData AS (
 	SELECT 
@@ -205,8 +205,18 @@ SELECT
     NULL AS [ChurnScore],
     NULL AS [ChurnRatio],
     NULL AS [TotalFrequencyScore],
-    NULL AS [RecencyScore],
-    NULL AS [TotalSpentScore],
+    
+    (
+        SELECT TOP 1 rs.Score
+        FROM RecencyScoreData rs
+        WHERE r.Recency BETWEEN rs.LowerLimit AND rs.UpperLimit
+    ) AS [RecencyScore],
+
+    (
+        SELECT TOP 1 dts.Score
+        FROM test.dbo.DimTotalSpentScore dts
+        WHERE ts.TotalSpent BETWEEN dts.LowerLimit AND dts.UpperLimit
+    ) AS [TotalSpentScore],
 
     (
         SELECT TOP 1 dc.CustomerID
@@ -223,7 +233,12 @@ SELECT
     tf.TotalFrequency,
 
     spf.SalesPersonFrequency,
-    NULL AS [SalesPersonFrequencyScore],
+    
+    (
+        SELECT TOP 1 spfs.Score
+        FROM test.dbo.DimSalesPersonFreqScore spfs
+        WHERE spf.SalesPersonFrequency BETWEEN spfs.LowerLimit AND spfs.UpperLimit
+    ) AS [SalesPersonFrequencyScore],
 
     soh.SubTotal,
     soh.TaxAmt AS Tax,
