@@ -16,7 +16,10 @@ BucketLimits AS (
     -- Get the min and max churn ratio for each quantile (ChurnScore)
     SELECT 
         ChurnScore,
-        MIN(ChurnRatio) AS LowerLimit,
+        CASE 
+            WHEN ChurnScore = 1 THEN 0  -- Set the LowerLimit of score 1 to 0
+            ELSE MIN(ChurnRatio) 
+        END AS LowerLimit,
         MAX(ChurnRatio) AS UpperLimit
     FROM 
         ChurnQuantiles
@@ -45,7 +48,10 @@ INSERT INTO test.dbo.DimChurnScore (ChurnScore, LowerLimit, UpperLimit, ChurnLev
 SELECT 
     ChurnScore,
     LowerLimit,
-    UpperLimit,
+    CASE
+		WHEN ChurnScore = 10 THEN UpperLimit + 1
+		ELSE UpperLimit
+	END AS UpperLimit,
     ChurnLevel
 FROM 
     ChurnLevels
