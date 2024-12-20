@@ -210,7 +210,10 @@ SalesPersonFrequencyData AS (
             ELSE spd.SalesPersonID 
          END) AS SalesPersonFrequency
 	FROM 
+		SalesOrder so
+	LEFT JOIN
 		SalesPersonData spd
+	ON	so.CustomerID = spd.CustomerID AND so.SalesPersonID = spd.SalesPersonID
 	GROUP BY 
 		spd.SalesPersonID, spd.CustomerID
 ),
@@ -330,40 +333,49 @@ Order By DateID, SalesOrderID;
 
 --------------------------------------------------------------------------------------
 
-WITH SalesPersonData AS (
+WITH SalesOrder AS (
+	SELECT
+		soh.SalesOrderID,
+		CASE 
+            WHEN soh.SalesPersonID IS NULL THEN -1 
+            ELSE soh.SalesPersonID 
+		END AS SalesPersonID,
+		soh.SubTotal,
+		soh.TaxAmt,
+		soh.Freight,
+		soh.TotalDue,
+		soh.OrderDate,
+		soh.CustomerID
+	FROM 
+		[CompanyX].[Sales].[SalesOrderHeader] AS soh
+), 
+
+SalesPersonData AS (
 	SELECT 
 		CustomerID,
 		SalesPersonID
 	FROM
-		[CompanyX].[Sales].[SalesOrderHeader] as soh
+		SalesOrder
 	GROUP BY
 		CustomerID,
 		SalesPersonID
 ), 
 
-ConvertedSalesPersonData AS (
-	SELECT	
-		CustomerID,
-		CASE 
-			WHEN d.SalesPersonID IS NULL THEN -1 
-			ELSE d.SalesPersonID 
-		END AS SalesPersonID
-	FROM SalesPersonData  d
-),
-
-
 SalesPersonFrequencyData AS (
 	SELECT 
-		cspd.CustomerID, 
-		cspd.SalesPersonID,
+		spd.CustomerID, 
+		spd.SalesPersonID,
     COUNT(CASE 
-            WHEN cspd.SalesPersonID IS NULL THEN -1 
-            ELSE cspd.SalesPersonID 
+            WHEN spd.SalesPersonID IS NULL THEN -1 
+            ELSE spd.SalesPersonID 
          END) AS SalesPersonFrequency
 	FROM 
-		ConvertedSalesPersonData cspd
+		SalesOrder so
+	LEFT JOIN
+		SalesPersonData spd
+	ON	so.CustomerID = spd.CustomerID AND so.SalesPersonID = spd.SalesPersonID
 	GROUP BY 
-		cspd.SalesPersonID, cspd.CustomerID
+		spd.SalesPersonID, spd.CustomerID
 )
 
 -- Change DimSalesPerson
@@ -378,8 +390,8 @@ INSERT INTO test.dbo.DimSalesPerson(
 )
 
 SELECT DISTINCT
-    cspd.SalesPersonID,
-    cspd.CustomerID,
+    spd.SalesPersonID,
+    spd.CustomerID,
     CASE 
 		WHEN p.FirstName IS NULL THEN 'Unknown'
 		ELSE p.FirstName
@@ -395,16 +407,16 @@ SELECT DISTINCT
     spf.SalesPersonFrequency AS CurrentSalesPersonFrequency,
 	spfs.Score AS CurrentSalesPersonFrequencyScore
 FROM 
-	ConvertedSalesPersonData cspd
+	SalesPersonData spd
 
 LEFT JOIN 
     [CompanyX].[Person].[Person] AS p 
-ON cspd.SalesPersonID = p.BusinessEntityID
+ON spd.SalesPersonID = p.BusinessEntityID
 
 LEFT JOIN
 		SalesPersonFrequencyData spf
-ON cspd.CustomerID = spf.CustomerID AND
-		cspd.SalesPersonID = spf.SalesPersonID
+ON spd.CustomerID = spf.CustomerID AND
+		spd.SalesPersonID = spf.SalesPersonID
 
 LEFT JOIN test.dbo.DimSalesPersonFreqScore spfs
 ON spfs.LowerLimit <= spf.SalesPersonFrequency AND spf.SalesPersonFrequency < spfs.UpperLimit

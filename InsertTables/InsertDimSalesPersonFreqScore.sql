@@ -1,15 +1,46 @@
 DELETE FROM test.dbo.DimSalesPersonFreqScore;
 
 
-WITH SalesPersonFreqData AS (
+WITH SalesOrder AS (
+	SELECT
+		soh.SalesOrderID,
+		CASE 
+            WHEN soh.SalesPersonID IS NULL THEN -1 
+            ELSE soh.SalesPersonID 
+		END AS SalesPersonID,
+		soh.SubTotal,
+		soh.TaxAmt,
+		soh.Freight,
+		soh.TotalDue,
+		soh.OrderDate,
+		soh.CustomerID
+	FROM 
+		[CompanyX].[Sales].[SalesOrderHeader] AS soh
+), 
+
+SalesPersonData AS (
+	SELECT 
+		CustomerID,
+		SalesPersonID
+	FROM
+		SalesOrder
+	GROUP BY
+		CustomerID,
+		SalesPersonID
+),
+
+SalesPersonFreqData AS (
     SELECT 
-		soh.CustomerID,
-        soh.SalesPersonID,
-		COUNT(soh.SalesOrderID) AS SalesPersonFrequency
+		spd.CustomerID,
+        spd.SalesPersonID,
+		COUNT(spd.SalesPersonID) AS SalesPersonFrequency
     FROM 
-        [CompanyX].[Sales].[SalesOrderHeader] soh
+        SalesOrder AS so
+    LEFT JOIN
+		SalesPersonData spd
+	ON	so.CustomerID = spd.CustomerID AND so.SalesPersonID = spd.SalesPersonID
     GROUP BY 
-        soh.SalesPersonID, soh.CustomerID
+        spd.SalesPersonID, spd.CustomerID
 ),
 GlobalMinMax AS (
     -- Step 3: Calculate global min and max OrderDate from the entire SalesOrderHeader table
