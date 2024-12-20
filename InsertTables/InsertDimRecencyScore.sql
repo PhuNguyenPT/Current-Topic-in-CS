@@ -72,7 +72,7 @@ RecencyScoreRanges AS (
 
         -- For Score 1, UpperLimit is the largest DaysSinceLastOrder (oldest)
         CASE 
-            WHEN s.Score = 1 THEN (SELECT GlobalMin FROM DateDiffGlobal)
+            WHEN s.Score = 1 THEN (SELECT GlobalMin + 1.00 FROM DateDiffGlobal)
             ELSE r.MinRecencyValue + (r.MaxRecencyValue - r.MinRecencyValue) / 10.0 * (10 - (s.Score - 1))
         END AS UpperLimit
     FROM 

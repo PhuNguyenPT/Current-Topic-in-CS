@@ -45,7 +45,7 @@ ScoreRanges AS (
         
         -- UpperLimit is calculated based on the next score range
         CASE 
-            WHEN Score = 10 THEN (SELECT GlobalMax FROM GlobalMinMax)  -- For score 10, the upper limit is the MaxQuantileValue
+            WHEN Score = 10 THEN (SELECT GlobalMax + 1.00 FROM GlobalMinMax)  
             ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 10.0 * Score
         END AS UpperLimit
     FROM 

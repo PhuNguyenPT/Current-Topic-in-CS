@@ -24,8 +24,8 @@ CREATE TABLE test.dbo.DimRecencyScore (
 CREATE TABLE test.dbo.DimTotalSpentScore (
     TotalSpentScoreID INT IDENTITY(1,1) PRIMARY KEY,
     Score INT NOT NULL,
-    LowerLimit DECIMAL(10, 2) NULL,
-    UpperLimit DECIMAL(10, 2) NULL
+    LowerLimit DECIMAL(20, 4) NULL,
+    UpperLimit DECIMAL(20, 4) NULL
 );
 
 CREATE TABLE test.dbo.DimSalesPersonFreqScore (
