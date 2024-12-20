@@ -1,7 +1,3 @@
--- This query updates values of LowerLimit and UpperLimit
--- by changing calculation values in ScoreRanges
--- (eg: changed "/ 15" to "/ 15")
-
 WITH SalesPersonFreqData AS (
     SELECT 
 		soh.CustomerID,
@@ -45,13 +41,13 @@ ScoreRanges AS (
         -- For Score 1, LowerLimit is the GlobalMin
         CASE 
             WHEN Score = 1 THEN (SELECT GlobalMin FROM GlobalMinMax)
-            ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 15.0 * (Score - 1)
+            ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 10.0 * (Score - 1)
         END AS LowerLimit,
         
         -- UpperLimit is calculated based on the next score range
         CASE 
             WHEN Score = 10 THEN (SELECT GlobalMax + 1.00 FROM GlobalMinMax)  -- For score 10, the upper limit is the MaxQuantileValue
-            ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 15.0 * Score
+            ELSE MinQuantileValue + (MaxQuantileValue - MinQuantileValue) / 10.0 * Score
         END AS UpperLimit
     FROM 
         (SELECT 1 AS Score UNION ALL 
