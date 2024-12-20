@@ -377,7 +377,7 @@ SalesPersonFrequencyData AS (
 	GROUP BY 
 		spd.SalesPersonID, spd.CustomerID
 )
-
+--------------------------------------------------------------------------------------
 -- Change DimSalesPerson
 INSERT INTO test.dbo.DimSalesPerson(
     SalesPersonID,
