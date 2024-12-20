@@ -173,7 +173,6 @@ ON tss.LowerLimit <= CAST(md.TotalSpent AS DECIMAL(20, 4)) AND CAST(md.TotalSpen
 --------------------------------------------------------------------------------------
 
 
-
 WITH SalesOrder AS (
 	SELECT
 		soh.SalesOrderID,
