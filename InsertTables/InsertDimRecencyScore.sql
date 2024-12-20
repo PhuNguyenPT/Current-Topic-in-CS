@@ -1,3 +1,5 @@
+DELETE FROM test.dbo.DimRecencyScore;
+
 WITH LatestOrderDates AS (
     -- Step 1: Extract the latest OrderDate for each CustomerID
     SELECT 

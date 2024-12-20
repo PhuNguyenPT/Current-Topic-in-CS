@@ -1,3 +1,6 @@
+DELETE FROM test.dbo.DimTotalSpentScore;
+
+
 WITH TotalSpentData AS (
     -- Get the total spent per customer
     SELECT 
