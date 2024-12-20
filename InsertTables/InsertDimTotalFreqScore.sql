@@ -1,3 +1,6 @@
+DELETE FROM test.dbo.DimTotalFreqScore;
+
+
 WITH TotalFrequencyData AS (
     SELECT 
         CustomerID,

@@ -1,3 +1,5 @@
+DELETE FROM test.dbo.DimChurnScore;
+
 -- Step 1: Define the number of levels dynamically (you can change this value)
 DECLARE @NumLevels INT = 5;  -- Number of levels you want to divide the data into (5 levels in this case)
 

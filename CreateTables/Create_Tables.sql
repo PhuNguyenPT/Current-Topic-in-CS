@@ -27,49 +27,26 @@ CREATE TABLE test.dbo.DimCustomer (
     CurrentTotalSpentScore INT      -- To be populated later
 );
 
--- Create DimStore table in dbo schema
--- CREATE TABLE test.dbo.DimStore (
---     StoreID INT IDENTITY(1,1) PRIMARY KEY,              -- From Sales.Store.BusinessEntityID
--- 	BusinessEntityID INT,
--- 	SalesPersonID INT,
---     StoreName NVARCHAR(255),              -- From Sales.Store.Name
---     AddressLine1 NVARCHAR(255),            -- From Person.Address.AddressLine1
---     AddressLine2 NVARCHAR(255),            -- From Person.Address.AddressLine2
---     PostalCode NVARCHAR(20),              -- From Person.Address.PostalCode
---     CountryRegionCode NVARCHAR(2),       -- From Person.StateProvince.CountryRegionCode
---     StateName NVARCHAR(255),               -- From Person.StateProvince.Name
---     CurrentStoreFrequencyScore INT        -- To be populated later (left empty for now)
--- );
-
---CREATE TABLE dbo.DimTotalSpent (
---    TotalSpentID INT IDENTITY(1,1) PRIMARY KEY,  -- Auto-incremented primary key
---    SubTotal DECIMAL(20, 2),                     -- Stores the subtotal amount
---   Tax DECIMAL(20, 2),                          -- Stores the tax amount
---    Freight DECIMAL(20, 2),                      -- Stores the freight/shipping cost
---    TotalDue DECIMAL(20, 2),                     -- Stores the total due amount
---    TotalSpent DECIMAL(20, 2)                    -- Stores the total amount spent
---);
-
 CREATE TABLE test.dbo.FactCustomerChurn (
         FactID INT IDENTITY(1,1) PRIMARY KEY,        -- Unique identifier for each record
         DateID INT ,								 -- Foreign Key to DimDate table
-        ChurnScore INT,                              -- Score representing churn risk
-        ChurnRatio NUMERIC(3,2),                     -- Ratio related to churn
-        TotalFrequencyScore INT,                     -- Total frequency score
-        RecencyScore INT,                            -- Score for recency of interactions
-        TotalSpentScore FLOAT,                       -- Score for total spending
         CustomerID INT ,							 -- Foreign Key to Customer table
-        Recency INT,                                 -- Days since last interaction
         SalesOrderID INT,                            -- Identifier for a sales order
 		SalesPersonID INT,
-        TotalFrequency INT,                          -- Total frequency of customer orders
-        SalesPersonFrequency INT,                     -- Total frequency of store orders
-        SalesPersonFrequencyScore INT,                     -- Frequency score per store
         SubTotal NUMERIC(20,2),                      -- Subtotal of a purchase
         Tax NUMERIC(20,2),                           -- Tax amount
         Freight NUMERIC(20,2),                       -- Freight cost
         TotalDue NUMERIC(20,2),                      -- Total amount due
-        TotalSpent NUMERIC(20,2)                     -- Total spending by the customer
+        TotalSpent NUMERIC(20,2),                    -- Total spending by the customer
+        SalesPersonFrequency INT,                    -- Total frequency of store orders
+        SalesPersonFrequencyScore INT,               -- Frequency score per store
+        TotalSpentScore FLOAT,                       -- Score for total spending
+        TotalFrequency INT,                          -- Total frequency of customer orders
+        TotalFrequencyScore INT,                     -- Total frequency score
+        Recency INT,                                 -- Days since last interaction
+        RecencyScore INT,                            -- Score for recency of interactions
+        ChurnRatio NUMERIC(3,2),                     -- Ratio related to churn
+        ChurnScore INT                               -- Score representing churn risk
     );
 
 -- Create DimSalesPerson table in dbo schema
