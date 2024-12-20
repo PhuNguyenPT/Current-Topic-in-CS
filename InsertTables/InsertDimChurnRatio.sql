@@ -1,3 +1,5 @@
+DELETE FROM test.dbo.DimChurnRatio;
+
 WITH ScoreData AS (
     SELECT 
         tf.Score AS TotalFrequencyScore,

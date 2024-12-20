@@ -134,6 +134,13 @@ ChurnScoreData AS (
 		[test].[dbo].[DimChurnScore]
 ),
 
+ChurnRatioData AS (
+    SELECT [ChurnRatioID]
+            ,[ChurnRatio]
+    FROM 
+        [test].[dbo].[DimChurnRatio]
+),
+
 TotalFrequencyScoreData AS (
 	SELECT [TotalFreqScoreID]
 		  ,[Score]
@@ -202,9 +209,47 @@ SELECT
         AND YEAR(soh.OrderDate) = dd.Year
     ) AS DateID,
 
-    NULL AS [ChurnScore],
-    NULL AS [ChurnRatio],
-    NULL AS [TotalFrequencyScore],
+
+
+    -- (
+    --     SELECT TOP 1 cs.ChurnScore
+    --     FROM ChurnScoreData cs
+    --     WHERE dcr.ChurnRatio BETWEEN cs.LowerLimit AND cs.UpperLimit
+    -- ) AS [ChurnScore],
+
+    -- dcr.ChurnRatio,
+    
+    (
+    SELECT TOP 1 dcr.ChurnRatio
+    FROM test.dbo.DimChurnRatio dcr
+    WHERE 
+        dcr.TotalFrequencyScore = (
+            SELECT TOP 1 Score
+            FROM test.dbo.DimTotalFreqScore
+            WHERE tf.TotalFrequency BETWEEN LowerLimit AND UpperLimit
+        )
+        AND dcr.RecencyScore = (
+            SELECT TOP 1 Score
+            FROM test.dbo.DimRecencyScore
+            WHERE r.Recency BETWEEN LowerLimit AND UpperLimit
+        )
+        AND dcr.TotalSpentScore = (
+            SELECT TOP 1 Score
+            FROM test.dbo.DimTotalSpentScore
+            WHERE ts.TotalSpent BETWEEN LowerLimit AND UpperLimit
+        )
+        AND dcr.SalesPersonFreqScore = (
+            SELECT TOP 1 Score
+            FROM test.dbo.DimSalesPersonFreqScore
+            WHERE spf.SalesPersonFrequency BETWEEN LowerLimit AND UpperLimit
+        )
+    ) AS [ChurnRatio],
+    
+    (
+        SELECT TOP 1 tfs.Score
+        FROM test.dbo.DimTotalFreqScore tfs
+        WHERE tf.TotalFrequency BETWEEN tfs.LowerLimit AND tfs.UpperLimit
+    ) AS [TotalFrequencyScore],
     
     (
         SELECT TOP 1 rs.Score
@@ -289,6 +334,26 @@ LEFT JOIN
     ) AS spf
 ON soh.CustomerID = spf.CustomerID
 AND soh.SalesPersonID = spf.SalesPersonID
+
+-- LEFT JOIN
+--     (
+--         SELECT 
+--             tf.Score AS TotalFrequencyScore,
+--             r.Score AS RecencyScore,
+--             ts.Score AS TotalSpentScore,
+--             spf.Score AS SalesPersonFreqScore,
+--             dcr.ChurnRatio
+--         FROM 
+--             test.dbo.DimChurnRatio dcr
+--         JOIN test.dbo.DimTotalFreqScore tf ON dcr.TotalFrequencyScore = tf.Score
+--         JOIN test.dbo.DimRecencyScore r ON dcr.RecencyScore = r.Score
+--         JOIN test.dbo.DimTotalSpentScore ts ON dcr.TotalSpentScore = ts.Score
+--         JOIN test.dbo.DimSalesPersonFreqScore spf ON dcr.SalesPersonFreqScore = spf.Score
+--     ) AS dcr
+-- ON tf.Score = dcr.TotalFrequencyScore
+-- AND r.Score = dcr.RecencyScore
+-- AND ts.Score = dcr.TotalSpentScore
+-- AND spf.Score = dcr.SalesPersonFreqScore
 
 ORDER BY 
     soh.SalesOrderID;
