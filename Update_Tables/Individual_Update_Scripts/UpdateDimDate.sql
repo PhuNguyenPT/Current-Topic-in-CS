@@ -1,7 +1,7 @@
--- Insert New Date to SalesOrderHeader2
+-- Insert New Date to SalesOrderHeader
 DECLARE @BaseOrderDate DATETIME = GETDATE(); -- Today's date as the base OrderDate
 
-INSERT INTO [CompanyX].[Sales].[SalesOrderHeader2]
+INSERT INTO [CompanyX].[Sales].[SalesOrderHeader]
 ([RevisionNumber], [OrderDate], [DueDate], [ShipDate], [Status], [OnlineOrderFlag], [SalesOrderNumber], 
 [PurchaseOrderNumber], [AccountNumber], [CustomerID], [SalesPersonID], [TerritoryID], [BillToAddressID], [ShipToAddressID], 
 [ShipMethodID], [CreditCardID], [CreditCardApprovalCode], [CurrencyRateID], [SubTotal], [TaxAmt], [Freight], [TotalDue], 
@@ -42,13 +42,13 @@ DECLARE @LatestYear INT;
 
 SELECT @LatestYear = YEAR(MAX(LatestDate))
 FROM (
-    SELECT MAX(OrderDate) AS LatestDate FROM [CompanyX].[Sales].[SalesOrderHeader2]
+    SELECT MAX(OrderDate) AS LatestDate FROM [CompanyX].[Sales].[SalesOrderHeader]
     UNION ALL
-    SELECT MAX(DueDate) FROM [CompanyX].[Sales].[SalesOrderHeader2]
+    SELECT MAX(DueDate) FROM [CompanyX].[Sales].[SalesOrderHeader]
     UNION ALL
-    SELECT MAX(ShipDate) FROM [CompanyX].[Sales].[SalesOrderHeader2]
+    SELECT MAX(ShipDate) FROM [CompanyX].[Sales].[SalesOrderHeader]
     UNION ALL
-    SELECT MAX(ModifiedDate) FROM [CompanyX].[Sales].[SalesOrderHeader2]
+    SELECT MAX(ModifiedDate) FROM [CompanyX].[Sales].[SalesOrderHeader]
 ) AS CombinedDates;
 
 -- Step 2: Generate the last day of the latest year

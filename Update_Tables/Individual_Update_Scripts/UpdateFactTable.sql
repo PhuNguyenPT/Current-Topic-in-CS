@@ -15,7 +15,7 @@ WITH SalesOrder AS (
 		soh.OrderDate,
 		soh.CustomerID
 	FROM 
-		[CompanyX].[Sales].[SalesOrderHeader2] AS soh
+		[CompanyX].[Sales].[SalesOrderHeader] AS soh
 ), 
 
 SalesPersonData AS (
@@ -193,7 +193,7 @@ WITH SalesOrder AS (
 		soh.OrderDate,
 		soh.CustomerID
 	FROM 
-		[CompanyX].[Sales].[SalesOrderHeader2] AS soh
+		[CompanyX].[Sales].[SalesOrderHeader] AS soh
 ), 
 
 SalesPersonData AS (
