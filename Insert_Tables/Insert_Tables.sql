@@ -618,7 +618,7 @@ SELECT
 	md.TotalFrequency AS CurrentTotalFreq,
 	tfs.Score AS CurrentTotalFreqScore,
 	CAST(md.TotalSpent AS DECIMAL(20, 4)) AS CurrentTotalSpent,
-	tss.Score AS TotalSpentScore
+	tss.Score AS CurrentTotalSpentScore
 FROM 
     [CompanyX].[Sales].[Customer] AS c
 JOIN 

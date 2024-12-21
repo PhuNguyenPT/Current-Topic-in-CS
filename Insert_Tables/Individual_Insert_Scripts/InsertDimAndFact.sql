@@ -113,8 +113,8 @@ ChurnRatioData AS (
 
 -- Change DimCustomer
 INSERT INTO test.dbo.DimCustomer (CustomerID, FirstName, MiddleName, LastName,
-CurrentRecency, CurrentRecencyScore, CurrentTotalFreq, CurrentTotalFreqScore,
-CurrentTotalSpent, CurrentTotalSpentScore)
+		CurrentRecency, CurrentRecencyScore, CurrentTotalFreq, CurrentTotalFreqScore,
+		CurrentTotalSpent, CurrentTotalSpentScore)
 SELECT 
     c.CustomerID,
     p.FirstName,
@@ -234,7 +234,7 @@ ON spd.CustomerID = spf.CustomerID AND
 		spd.SalesPersonID = spf.SalesPersonID
 
 LEFT JOIN test.dbo.DimSalesPersonFreqScore spfs
-ON spfs.LowerLimit <= spf.SalesPersonFrequency AND spf.SalesPersonFrequency < spfs.UpperLimit
+ON spfs.LowerLimit <= spf.SalesPersonFrequency AND spf.SalesPersonFrequency < spfs.UpperLimit;
 
 
 --------------------------------------------------------------------------------------
