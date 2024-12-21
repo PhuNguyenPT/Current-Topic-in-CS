@@ -148,7 +148,51 @@ ON tss.LowerLimit <= CAST(md.TotalSpent AS DECIMAL(20, 4)) AND CAST(md.TotalSpen
 
 --------------------------------------------------------------------------------------
 
+WITH SalesOrder AS (
+	SELECT
+		soh.SalesOrderID,
+		CASE 
+            WHEN soh.SalesPersonID IS NULL THEN -1 
+            ELSE soh.SalesPersonID 
+		END AS SalesPersonID,
+		soh.SubTotal,
+		soh.TaxAmt,
+		soh.Freight,
+		soh.TotalDue,
+		soh.OrderDate,
+		soh.CustomerID
+	FROM 
+		[CompanyX].[Sales].[SalesOrderHeader] AS soh
+), 
 
+SalesPersonData AS (
+	SELECT 
+		CustomerID,
+		SalesPersonID
+	FROM
+		SalesOrder
+	GROUP BY
+		CustomerID,
+		SalesPersonID
+), 
+
+SalesPersonFrequencyData AS (
+	SELECT 
+		spd.CustomerID, 
+		spd.SalesPersonID,
+    COUNT(CASE 
+            WHEN spd.SalesPersonID IS NULL THEN -1 
+            ELSE spd.SalesPersonID 
+         END) AS SalesPersonFrequency
+	FROM 
+		SalesOrder so
+	LEFT JOIN
+		SalesPersonData spd
+	ON	so.CustomerID = spd.CustomerID AND so.SalesPersonID = spd.SalesPersonID
+	GROUP BY 
+		spd.SalesPersonID, spd.CustomerID
+)
+--------------------------------------------------------------------------------------
 -- Change DimSalesPerson
 INSERT INTO test.dbo.DimSalesPerson(
     SalesPersonID,
@@ -161,39 +205,36 @@ INSERT INTO test.dbo.DimSalesPerson(
 )
 
 SELECT DISTINCT
-    CASE
-        WHEN soh.SalesPersonID IS NULL THEN -1
-        ELSE soh.SalesPersonID
-    END AS SalesPersonID,
-    soh.CustomerID,
-    p.FirstName,
-    p.MiddleName,
-    p.LastName,
+    spd.SalesPersonID,
+    spd.CustomerID,
+    CASE 
+		WHEN p.FirstName IS NULL THEN 'Unknown'
+		ELSE p.FirstName
+	END AS FirstName,
+    CASE 
+		WHEN p.MiddleName IS NULL THEN 'Unknown'
+		ELSE p.MiddleName
+	END AS MiddleName,
+    CASE 
+		WHEN p.LastName IS NULL THEN 'Unknown'
+		ELSE p.LastName
+	END AS LastName,
     spf.SalesPersonFrequency AS CurrentSalesPersonFrequency,
 	spfs.Score AS CurrentSalesPersonFrequencyScore
 FROM 
-    [CompanyX].[Sales].[SalesOrderHeader] AS soh
-LEFT JOIN 
-	[CompanyX].[Sales].[SalesPerson] AS sp
-    ON sp.BusinessEntityID = soh.SalesPersonID
+	SalesPersonData spd
+
 LEFT JOIN 
     [CompanyX].[Person].[Person] AS p 
-    ON sp.BusinessEntityID = p.BusinessEntityID
-LEFT JOIN 
-    ( -- Subquery to calculate SalesPersonFrequency
-        SELECT 
-            SalesPersonID, 
-            CustomerID, 
-            COUNT(SalesOrderID) AS SalesPersonFrequency
-        FROM 
-            [CompanyX].[Sales].[SalesOrderHeader]
-        GROUP BY 
-            SalesPersonID, CustomerID
-    ) AS spf
-    ON sp.BusinessEntityID = spf.SalesPersonID 
-    AND soh.CustomerID = spf.CustomerID
+ON spd.SalesPersonID = p.BusinessEntityID
+
+LEFT JOIN
+		SalesPersonFrequencyData spf
+ON spd.CustomerID = spf.CustomerID AND
+		spd.SalesPersonID = spf.SalesPersonID
+
 LEFT JOIN test.dbo.DimSalesPersonFreqScore spfs
-	ON spfs.LowerLimit <= spf.SalesPersonFrequency AND spf.SalesPersonFrequency < spfs.UpperLimit;
+ON spfs.LowerLimit <= spf.SalesPersonFrequency AND spf.SalesPersonFrequency < spfs.UpperLimit
 
 
 --------------------------------------------------------------------------------------
@@ -232,8 +273,8 @@ WITH SalesOrder AS (
 		soh.SalesOrderID,
 		CASE 
             WHEN soh.SalesPersonID IS NULL THEN -1 
-            ELSE soh.SalesOrderID 
-		END as SalesPersonID,
+            ELSE soh.SalesPersonID 
+		END AS SalesPersonID,
 		soh.SubTotal,
 		soh.TaxAmt,
 		soh.Freight,
@@ -242,21 +283,36 @@ WITH SalesOrder AS (
 		soh.CustomerID
 	FROM 
 		[CompanyX].[Sales].[SalesOrderHeader] AS soh
-)
-, 
+), 
+
+SalesPersonData AS (
+	SELECT 
+		CustomerID,
+		SalesPersonID
+	FROM
+		SalesOrder
+	GROUP BY
+		CustomerID,
+		SalesPersonID
+), 
+
 SalesPersonFrequencyData AS (
 	SELECT 
-		so.CustomerID, 
-		so.SalesPersonID,
+		spd.CustomerID, 
+		spd.SalesPersonID,
     COUNT(CASE 
-            WHEN so.SalesPersonID IS NULL THEN -1 
-            ELSE so.SalesOrderID 
+            WHEN spd.SalesPersonID IS NULL THEN -1 
+            ELSE spd.SalesPersonID 
          END) AS SalesPersonFrequency
 	FROM 
 		SalesOrder so
+	LEFT JOIN
+		SalesPersonData spd
+	ON	so.CustomerID = spd.CustomerID AND so.SalesPersonID = spd.SalesPersonID
 	GROUP BY 
-		so.SalesPersonID, so.CustomerID
+		spd.SalesPersonID, spd.CustomerID
 ),
+
 MetricData AS (
 	SELECT 
 		CustomerID,

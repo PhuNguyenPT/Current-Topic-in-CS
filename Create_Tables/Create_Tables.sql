@@ -30,7 +30,7 @@ DROP TABLE IF EXISTS CompanyX.Sales.SalesTerritory2;
 
 --------------------------------------------------------------------------------------------------
 
--- Create Dim Tables
+-- Create Dim and Fact Tables
 
 
 -- Create DimDate table in dbo schema
@@ -94,7 +94,6 @@ CREATE TABLE test.dbo.DimSalesPerson (
 --------------------------------------------------------------------------------------------------
 
 -- Create User Defined Tables
-
 
 CREATE TABLE test.dbo.DimTotalFreqScore (
     TotalFreqScoreID INT IDENTITY(1,1) PRIMARY KEY,
