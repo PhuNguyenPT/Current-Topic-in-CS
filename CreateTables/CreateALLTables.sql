@@ -146,41 +146,41 @@ CREATE TABLE test.dbo.DimChurnScore (
 
 
 -- Copy Sales.Customer to Sales.Customer2
-SELECT * INTO Sales.Customer2
-FROM Sales.Customer;
+SELECT * INTO CompanyX.Sales.Customer2
+FROM CompanyX.Sales.Customer;
 
 -- Copy Person.Person to Person.Person2
-SELECT * INTO Person.Person2
-FROM Person.Person;
+SELECT * INTO CompanyX.Person.Person2
+FROM CompanyX.Person.Person;
 
 -- Copy Sales.Store to Sales.Store2
-SELECT * INTO Sales.Store2
-FROM Sales.Store;
+SELECT * INTO CompanyX.Sales.Store2
+FROM CompanyX.Sales.Store;
 
 -- Copy Person.BusinessEntity to Person.BusinessEntity2
-SELECT * INTO Person.BusinessEntity2
-FROM Person.BusinessEntity;
+SELECT * INTO CompanyX.Person.BusinessEntity2
+FROM CompanyX.Person.BusinessEntity;
 
 -- Copy Person.BusinessEntityAddress to Person.BusinessEntityAddress2
-SELECT * INTO Person.BusinessEntityAddress2
-FROM Person.BusinessEntityAddress;
+SELECT * INTO CompanyX.Person.BusinessEntityAddress2
+FROM CompanyX.Person.BusinessEntityAddress;
 
 -- Copy Person.Address to Person.Address2
-SELECT * INTO Person.Address2
-FROM Person.Address;
+SELECT * INTO CompanyX.Person.Address2
+FROM CompanyX.Person.Address;
 
 -- Copy Person.StateProvince to Person.StateProvince2
-SELECT * INTO Person.StateProvince2
-FROM Person.StateProvince;
+SELECT * INTO CompanyX.Person.StateProvince2
+FROM CompanyX.Person.StateProvince;
 
 -- Copy Sales.SalesOrderHeader to Sales.SalesOrderHeader2
-SELECT * INTO Sales.SalesOrderHeader2
-FROM Sales.SalesOrderHeader;
+SELECT * INTO CompanyX.Sales.SalesOrderHeader2
+FROM CompanyX.Sales.SalesOrderHeader;
 
 -- Copy Person.AddressType to Person.AddressType2
-SELECT * INTO Person.AddressType2
-FROM Person.AddressType;
+SELECT * INTO CompanyX.Person.AddressType2
+FROM CompanyX.Person.AddressType;
 
 -- Copy Sales.SalesTerritory to Sales.SalesTerritory2
-SELECT * INTO Sales.SalesTerritory2
-FROM Sales.SalesTerritory;
+SELECT * INTO CompanyX.Sales.SalesTerritory2
+FROM CompanyX.Sales.SalesTerritory;
