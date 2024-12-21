@@ -21,9 +21,11 @@ CREATE TABLE test.dbo.DimCustomer (
     FirstName NVARCHAR(255),
     MiddleName NVARCHAR(255),
     LastName NVARCHAR(255),
+    CurrentRecency INT,
     CurrentRecencyScore INT,        -- To be populated later
+    CurrentTotalFreq INT,
     CurrentTotalFreqScore INT,      -- To be populated later
-    CurrentTotalSpent DECIMAL(18,2),-- To be populated later
+    CurrentTotalSpent NUMERIC(20,2),-- To be populated later
     CurrentTotalSpentScore INT      -- To be populated later
 );
 
