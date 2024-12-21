@@ -38,40 +38,54 @@ VALUES
 
 
 -- Step 1: Find the latest date in DimDate
-DECLARE @LatestDimDate DATE;
-SELECT @LatestDimDate = MAX(CAST(CONCAT([Year], '-', [Month], '-', [Day]) AS DATE))
-FROM test.dbo.DimDate;
+DECLARE @LatestYear INT;
 
--- Step 2: Find the latest date in SalesOrderHeader2
-DECLARE @LatestSalesDate DATE;
-SELECT @LatestSalesDate = MAX(LatestSalesDate)
+SELECT @LatestYear = YEAR(MAX(LatestDate))
 FROM (
-    SELECT MAX([OrderDate]) AS LatestSalesDate FROM [CompanyX].[Sales].[SalesOrderHeader2]
+    SELECT MAX(OrderDate) AS LatestDate FROM [CompanyX].[Sales].[SalesOrderHeader2]
     UNION ALL
-    SELECT MAX([DueDate]) FROM [CompanyX].[Sales].[SalesOrderHeader2]
+    SELECT MAX(DueDate) FROM [CompanyX].[Sales].[SalesOrderHeader2]
     UNION ALL
-    SELECT MAX([ShipDate]) FROM [CompanyX].[Sales].[SalesOrderHeader2]
+    SELECT MAX(ShipDate) FROM [CompanyX].[Sales].[SalesOrderHeader2]
     UNION ALL
-    SELECT MAX([ModifiedDate]) FROM [CompanyX].[Sales].[SalesOrderHeader2]
-) AS SalesDates;
+    SELECT MAX(ModifiedDate) FROM [CompanyX].[Sales].[SalesOrderHeader2]
+) AS CombinedDates;
 
--- Step 3: Check if we need to add new dates
-IF @LatestSalesDate > @LatestDimDate
-BEGIN
-    -- Insert missing dates into DimDate
-    WITH DateRange AS (
-        SELECT DATEADD(DAY, Number, @LatestDimDate) AS CurrentDate
-        FROM master.dbo.spt_values
-        WHERE Type = 'P'
-          AND Number <= DATEDIFF(DAY, @LatestDimDate, @LatestSalesDate)
-    )
-    INSERT INTO test.dbo.DimDate (Day, Month, Year, Quarter)
-    SELECT 
-        DAY(CurrentDate) AS Day,
-        MONTH(CurrentDate) AS Month,
-        YEAR(CurrentDate) AS Year,
-        DATEPART(QUARTER, CurrentDate) AS Quarter
-    FROM DateRange
-    WHERE CurrentDate > @LatestDimDate
-    ORDER BY CurrentDate;
-END
+-- Step 2: Generate the last day of the latest year
+DECLARE @LastDayOfYear DATE = DATEFROMPARTS(@LatestYear, 12, 31);
+
+-- Step 3: Find the maximum existing date in DimDate
+DECLARE @MaxExistingDate DATE;
+
+SELECT @MaxExistingDate = MAX(DateConstructed)
+FROM (
+    SELECT DATEFROMPARTS(Year, Month, Day) AS DateConstructed
+    FROM test.dbo.DimDate
+) AS ExistingDates;
+
+-- Step 4: Insert missing dates into DimDate using a CTE to generate numbers
+WITH Numbers AS (
+    SELECT 0 AS Number
+    UNION ALL
+    SELECT Number + 1
+    FROM Numbers
+    WHERE Number < DATEDIFF(DAY, @MaxExistingDate, @LastDayOfYear)
+)
+
+INSERT INTO test.dbo.DimDate (Day, Month, Year, Quarter)
+SELECT 
+    DAY(CurrentDate) AS Day,         -- Extract day
+    MONTH(CurrentDate) AS Month,     -- Extract month
+    YEAR(CurrentDate) AS Year,       -- Extract year
+    DATEPART(QUARTER, CurrentDate) AS Quarter  -- Extract quarter
+FROM (
+    SELECT DATEADD(DAY, Number, DATEADD(DAY, 1, @MaxExistingDate)) AS CurrentDate
+    FROM Numbers
+) AS DateRange
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM test.dbo.DimDate dd
+    WHERE dd.Year = YEAR(CurrentDate) AND dd.Month = MONTH(CurrentDate) AND dd.Day = DAY(CurrentDate)
+)
+AND CurrentDate <= @LastDayOfYear  -- Explicitly ensure the date is not beyond 2024-12-31
+OPTION (MAXRECURSION 0);  -- Allow unlimited recursion for large ranges

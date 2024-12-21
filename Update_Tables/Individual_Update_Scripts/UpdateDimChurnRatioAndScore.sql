@@ -1,3 +1,7 @@
+
+
+
+
 WITH ScoreData AS (
     SELECT 
         tf.Score AS TotalFrequencyScore,
