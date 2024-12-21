@@ -96,7 +96,7 @@ ScoreRanges AS (
          SELECT 10) AS Scores,
         QuantileLimits
 )
--- Insert the calculated scores into DimTotalFreqScore
+-- Insert the calculated scores into DimSalesPersonFreqScore
 INSERT INTO test.dbo.DimSalesPersonFreqScore (Score, LowerLimit, UpperLimit)
 SELECT 
     Score,
