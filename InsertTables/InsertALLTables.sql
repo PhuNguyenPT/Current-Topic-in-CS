@@ -400,7 +400,7 @@ ORDER BY Score;
 -- Insert into DimChurnRatio and DimChurnScore
 
 
--- DimChurnRatio
+---------------------------DimChurnRatio---------------------------
 
 WITH ScoreData AS (
     SELECT 
@@ -438,7 +438,7 @@ FROM ScoreData sd
 ORDER BY sd.TotalFrequencyScore, sd.RecencyScore, sd.TotalSpentScore, sd.SalesPersonFreqScore ASC;
 
 
--- DimChurnScore
+---------------------------DimChurnScore---------------------------
 
 -- Step 1: Define the number of levels dynamically (you can change this value)
 DECLARE @NumLevels INT = 5;  -- Number of levels you want to divide the data into (5 levels in this case)
@@ -613,14 +613,17 @@ ChurnRatioData AS (
 
 -- Change DimCustomer
 INSERT INTO test.dbo.DimCustomer (CustomerID, FirstName, MiddleName, LastName,
-CurrentRecencyScore, CurrentTotalFreqScore, CurrentTotalSpent, CurrentTotalSpentScore)
+CurrentRecency, CurrentRecencyScore, CurrentTotalFreq, CurrentTotalFreqScore,
+CurrentTotalSpent, CurrentTotalSpentScore)
 SELECT 
     c.CustomerID,
     p.FirstName,
     p.MiddleName,
     p.LastName,
+	md.recency AS CurrentRecency,
 	rs.Score AS CurrentRecencyScore,
-	tfs.Score AS CurrentTotalFrequencyScore,
+	md.TotalFrequency AS CurrentTotalFreq,
+	tfs.Score AS CurrentTotalFreqScore,
 	CAST(md.TotalSpent AS DECIMAL(20, 4)) AS CurrentTotalSpent,
 	tss.Score AS TotalSpentScore
 FROM 

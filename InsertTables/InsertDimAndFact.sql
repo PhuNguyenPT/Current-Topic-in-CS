@@ -113,14 +113,17 @@ ChurnRatioData AS (
 
 -- Change DimCustomer
 INSERT INTO test.dbo.DimCustomer (CustomerID, FirstName, MiddleName, LastName,
-CurrentRecencyScore, CurrentTotalFreqScore, CurrentTotalSpent, CurrentTotalSpentScore)
+CurrentRecency, CurrentRecencyScore, CurrentTotalFreq, CurrentTotalFreqScore,
+CurrentTotalSpent, CurrentTotalSpentScore)
 SELECT 
     c.CustomerID,
     p.FirstName,
     p.MiddleName,
     p.LastName,
+	md.recency AS CurrentRecency,
 	rs.Score AS CurrentRecencyScore,
-	tfs.Score AS CurrentTotalFrequencyScore,
+	md.TotalFrequency AS CurrentTotalFreq,
+	tfs.Score AS CurrentTotalFreqScore,
 	CAST(md.TotalSpent AS DECIMAL(20, 4)) AS CurrentTotalSpent,
 	tss.Score AS TotalSpentScore
 FROM 
@@ -146,6 +149,55 @@ ON tss.LowerLimit <= CAST(md.TotalSpent AS DECIMAL(20, 4)) AND CAST(md.TotalSpen
 --------------------------------------------------------------------------------------
 
 
+-- Change DimSalesPerson
+INSERT INTO test.dbo.DimSalesPerson(
+    SalesPersonID,
+    CustomerID,
+    FirstName,
+    MiddleName,
+    LastName,
+    CurrentSalesPersonFrequency,
+	CurrentSalesPersonFrequencyScore
+)
+
+SELECT DISTINCT
+    CASE
+        WHEN soh.SalesPersonID IS NULL THEN -1
+        ELSE soh.SalesPersonID
+    END AS SalesPersonID,
+    soh.CustomerID,
+    p.FirstName,
+    p.MiddleName,
+    p.LastName,
+    spf.SalesPersonFrequency AS CurrentSalesPersonFrequency,
+	spfs.Score AS CurrentSalesPersonFrequencyScore
+FROM 
+    [CompanyX].[Sales].[SalesOrderHeader] AS soh
+LEFT JOIN 
+	[CompanyX].[Sales].[SalesPerson] AS sp
+    ON sp.BusinessEntityID = soh.SalesPersonID
+LEFT JOIN 
+    [CompanyX].[Person].[Person] AS p 
+    ON sp.BusinessEntityID = p.BusinessEntityID
+LEFT JOIN 
+    ( -- Subquery to calculate SalesPersonFrequency
+        SELECT 
+            SalesPersonID, 
+            CustomerID, 
+            COUNT(SalesOrderID) AS SalesPersonFrequency
+        FROM 
+            [CompanyX].[Sales].[SalesOrderHeader]
+        GROUP BY 
+            SalesPersonID, CustomerID
+    ) AS spf
+    ON sp.BusinessEntityID = spf.SalesPersonID 
+    AND soh.CustomerID = spf.CustomerID
+LEFT JOIN test.dbo.DimSalesPersonFreqScore spfs
+	ON spfs.LowerLimit <= spf.SalesPersonFrequency AND spf.SalesPersonFrequency < spfs.UpperLimit;
+
+
+--------------------------------------------------------------------------------------
+
 
 -- Change DimStore
 -- INSERT INTO test.dbo.DimStore (BusinessEntityID, SalesPersonID, StoreName, AddressLine1, AddressLine2, PostalCode, CountryRegionCode, StateName)
@@ -170,7 +222,10 @@ ON tss.LowerLimit <= CAST(md.TotalSpent AS DECIMAL(20, 4)) AND CAST(md.TotalSpen
 --     [CompanyX].[Person].[StateProvince] sp ON a.StateProvinceID = sp.StateProvinceID
 -- ORDER BY
 -- 	s.BusinessEntityID;
+
+
 --------------------------------------------------------------------------------------
+
 
 WITH SalesOrder AS (
 	SELECT
@@ -313,56 +368,3 @@ LEFT JOIN test.dbo.DimChurnScore cs
     ON cs.LowerLimit <= crd.ChurnRatio AND crd.ChurnRatio < cs.UpperLimit
 
 Order By DateID, SalesOrderID;
-
-
---------------------------------------------------------------------------------------
-
-
--- Change DimSalesPerson
-INSERT INTO test.dbo.DimSalesPerson(
-    SalesPersonID,
-    CustomerID,
-    FirstName,
-    MiddleName,
-    LastName,
-    CurrentSalesPersonFrequency,
-	CurrentSalesPersonFrequencyScore
-)
-
-SELECT DISTINCT
-    CASE
-        WHEN soh.SalesPersonID IS NULL THEN -1
-        ELSE soh.SalesPersonID
-    END AS SalesPersonID,
-    soh.CustomerID,
-    p.FirstName,
-    p.MiddleName,
-    p.LastName,
-    spf.SalesPersonFrequency AS CurrentSalesPersonFrequency,
-	spfs.Score AS CurrentSalesPersonFrequencyScore
-FROM 
-    [CompanyX].[Sales].[SalesOrderHeader] AS soh
-LEFT JOIN 
-	[CompanyX].[Sales].[SalesPerson] AS sp
-    ON sp.BusinessEntityID = soh.SalesPersonID
-LEFT JOIN 
-    [CompanyX].[Person].[Person] AS p 
-    ON sp.BusinessEntityID = p.BusinessEntityID
-LEFT JOIN 
-    ( -- Subquery to calculate SalesPersonFrequency
-        SELECT 
-            SalesPersonID, 
-            CustomerID, 
-            COUNT(SalesOrderID) AS SalesPersonFrequency
-        FROM 
-            [CompanyX].[Sales].[SalesOrderHeader]
-        GROUP BY 
-            SalesPersonID, CustomerID
-    ) AS spf
-    ON sp.BusinessEntityID = spf.SalesPersonID 
-    AND soh.CustomerID = spf.CustomerID
-LEFT JOIN test.dbo.DimSalesPersonFreqScore spfs
-	ON spfs.LowerLimit <= spf.SalesPersonFrequency AND spf.SalesPersonFrequency < spfs.UpperLimit
-
-    
---------------------------------------------------------------------------------------
