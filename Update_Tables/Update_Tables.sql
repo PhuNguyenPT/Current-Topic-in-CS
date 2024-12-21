@@ -9,7 +9,7 @@ WITH LatestOrderDates AS (
         CustomerID,
         MAX(OrderDate) AS LatestOrderDate
     FROM 
-        [CompanyX].[Sales].[SalesOrderHeader2]
+        [CompanyX].[Sales].[SalesOrderHeader]
     GROUP BY 
         CustomerID
 ),
@@ -24,12 +24,12 @@ DaysSinceLastOrder AS (
 ),
 
 GlobalMinMax AS (
-    -- Step 3: Calculate global min and max OrderDate from the entire SalesOrderHeader2 table
+    -- Step 3: Calculate global min and max OrderDate from the entire SalesOrderHeader table
     SELECT 
         MIN(OrderDate) AS GlobalMin,  -- Earliest order date (oldest)
         MAX(OrderDate) AS GlobalMax   -- Latest order date (most recent)
     FROM 
-        [CompanyX].[Sales].[SalesOrderHeader2]
+        [CompanyX].[Sales].[SalesOrderHeader]
 ),
 DateDiffGlobal AS (
 	SELECT
@@ -130,7 +130,7 @@ WITH SalesOrder AS (
 		soh.OrderDate,
 		soh.CustomerID
 	FROM 
-		[CompanyX].[Sales].[SalesOrderHeader2] AS soh
+		[CompanyX].[Sales].[SalesOrderHeader] AS soh
 ), 
 
 SalesPersonData AS (
@@ -159,7 +159,7 @@ SalesPersonFreqData AS (
 ),
 
 GlobalMinMax AS (
-    -- Step 3: Calculate global min and max OrderDate from the entire SalesOrderHeader2 table
+    -- Step 3: Calculate global min and max OrderDate from the entire SalesOrderHeader table
     SELECT 
         MIN(SalesPersonFrequency) AS GlobalMin,  -- Earliest order date (oldest)
         MAX(SalesPersonFrequency) AS GlobalMax   -- Latest order date (most recent)
@@ -231,7 +231,7 @@ WITH TotalFrequencyData AS (
         CustomerID,
         COUNT(SalesOrderID) AS TotalFrequency
     FROM 
-        [CompanyX].[Sales].[SalesOrderHeader2]
+        [CompanyX].[Sales].[SalesOrderHeader]
     GROUP BY 
         CustomerID
 ),
@@ -304,7 +304,7 @@ WITH TotalSpentData AS (
         CustomerID,
         SUM(TotalDue) AS TotalSpent
     FROM 
-        [CompanyX].[Sales].[SalesOrderHeader2]
+        [CompanyX].[Sales].[SalesOrderHeader]
     GROUP BY 
         CustomerID
 ),
@@ -491,18 +491,18 @@ ON
 
 -- Update DimDate --
 
--- Step 1: Find the latest year from SalesOrderHeader2
+-- Step 1: Find the latest year from SalesOrderHeader
 DECLARE @LatestYear INT;
 
 SELECT @LatestYear = YEAR(MAX(LatestDate))
 FROM (
-    SELECT MAX(OrderDate) AS LatestDate FROM [CompanyX].[Sales].[SalesOrderHeader2]
+    SELECT MAX(OrderDate) AS LatestDate FROM [CompanyX].[Sales].[SalesOrderHeader]
     UNION ALL
-    SELECT MAX(DueDate) FROM [CompanyX].[Sales].[SalesOrderHeader2]
+    SELECT MAX(DueDate) FROM [CompanyX].[Sales].[SalesOrderHeader]
     UNION ALL
-    SELECT MAX(ShipDate) FROM [CompanyX].[Sales].[SalesOrderHeader2]
+    SELECT MAX(ShipDate) FROM [CompanyX].[Sales].[SalesOrderHeader]
     UNION ALL
-    SELECT MAX(ModifiedDate) FROM [CompanyX].[Sales].[SalesOrderHeader2]
+    SELECT MAX(ModifiedDate) FROM [CompanyX].[Sales].[SalesOrderHeader]
 ) AS CombinedDates;
 
 -- Step 2: Generate the last day of the latest year
@@ -562,7 +562,7 @@ WITH SalesOrder AS (
 		soh.OrderDate,
 		soh.CustomerID
 	FROM 
-		[CompanyX].[Sales].[SalesOrderHeader2] AS soh
+		[CompanyX].[Sales].[SalesOrderHeader] AS soh
 ),
 
 SalesPersonFrequencyData AS (
@@ -731,7 +731,7 @@ WITH SalesOrder AS (
 		soh.OrderDate,
 		soh.CustomerID
 	FROM 
-		[CompanyX].[Sales].[SalesOrderHeader2] AS soh
+		[CompanyX].[Sales].[SalesOrderHeader] AS soh
 ), 
 
 SalesPersonData AS (
@@ -847,7 +847,7 @@ WITH SalesOrder AS (
 		soh.OrderDate,
 		soh.CustomerID
 	FROM 
-		[CompanyX].[Sales].[SalesOrderHeader2] AS soh
+		[CompanyX].[Sales].[SalesOrderHeader] AS soh
 ), 
 
 SalesPersonData AS (
@@ -970,7 +970,7 @@ NewFact AS (
 )
 
 
--- Update existing records in FactCustomerChurn if there are changes in SalesOrderHeader2
+-- Update existing records in FactCustomerChurn if there are changes in SalesOrderHeader
 UPDATE fcc
 SET 
     fcc.DateID = nf.DateID,
@@ -1025,7 +1025,7 @@ WITH SalesOrder AS (
 		soh.OrderDate,
 		soh.CustomerID
 	FROM 
-		[CompanyX].[Sales].[SalesOrderHeader2] AS soh
+		[CompanyX].[Sales].[SalesOrderHeader] AS soh
 ), 
 
 SalesPersonData AS (
