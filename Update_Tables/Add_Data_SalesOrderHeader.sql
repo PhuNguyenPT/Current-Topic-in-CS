@@ -1,3 +1,7 @@
+DELETE FROM [CompanyX].[Sales].[SalesOrderHeader2]
+WHERE SalesOrderID >= 75124;
+
+
 DECLARE @LatestDate DATETIME;
 
 -- Get the latest date from the SalesOrderHeader table
@@ -14,8 +18,9 @@ FROM (
 
 DECLARE @Counter INT = 1;
 DECLARE @CurrencyRateID INT = 13532; -- Start CurrencyRateID at 13532
+DECLARE @StartingSalesOrderID INT = 75124; -- Starting SalesOrderID for new entries
 
-WHILE @Counter <= 1000
+WHILE @Counter <= 100
 BEGIN
     -- Generate random date intervals
     DECLARE @OrderDate DATETIME = DATEADD(DAY, ABS(CHECKSUM(NEWID()) % 10) + 1, @LatestDate); -- Randomly add 1 to 10 days to @LatestDate
@@ -26,11 +31,11 @@ BEGIN
 
     -- Random SalesPersonID
     DECLARE @SalesPersonID INT = (
-        SELECT TOP 1 SalesPersonID 
+        SELECT TOP 1 [BusinessEntityID] 
         FROM (
-            SELECT SalesPersonID FROM [CompanyX].[Sales].[SalesPerson]
+            SELECT [BusinessEntityID] FROM [CompanyX].[Sales].[SalesPerson]
             UNION ALL
-            SELECT -1 AS SalesPersonID -- Include -1 in the random selection
+            SELECT -1 AS [BusinessEntityID] -- Include -1 in the random selection
         ) AS CombinedSalesPerson
         ORDER BY NEWID()
     );
@@ -94,6 +99,8 @@ BEGIN
     -- Calculate TotalDue
     DECLARE @TotalDue MONEY = CAST(ROUND(@SubTotal + @TaxAmt + @Freight, 4) AS MONEY);
 
+	DECLARE @SalesOrderNumber NVARCHAR(20) = CONCAT('SO', @StartingSalesOrderID);
+
     INSERT INTO [CompanyX].[Sales].[SalesOrderHeader2]
     (
         [RevisionNumber],         -- Revision number
@@ -102,6 +109,7 @@ BEGIN
         [ShipDate],               -- Ship date
         [Status],                 -- Status
         [OnlineOrderFlag],        -- Online order flag
+		[SalesOrderNumber],		  
         [CustomerID],             -- Customer ID (random)
         [SalesPersonID],          -- Salesperson ID (random or -1)
         [TerritoryID],            -- TerritoryID matching CustomerID
@@ -126,6 +134,7 @@ BEGIN
         @ShipDate,                       -- Random incremental [ShipDate]
         @Status,                         -- Random Status (5 or 6)
         @OnlineOrderFlag,                -- OnlineOrderFlag: 1 if SalesPersonID = -1, otherwise 0
+		@SalesOrderNumber,
         @CustomerID,                     -- Random [CustomerID]
         @SalesPersonID,                  -- Random [SalesPersonID] or -1
         @TerritoryID,                    -- TerritoryID matching CustomerID
@@ -150,4 +159,6 @@ BEGIN
     SET @LatestDate = @OrderDate;
 
     SET @Counter = @Counter + 1;
+
+	SET @StartingSalesOrderID = @StartingSalesOrderID + 1
 END;

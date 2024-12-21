@@ -10,10 +10,10 @@ DELETE FROM test.dbo.DimChurnRatio;
 DELETE FROM test.dbo.DimChurnScore;
 
 -- Drop 3 Dims and Fact
-DELETE FROM dbo.DimDate;
-DELETE FROM dbo.DimCustomer;
-DELETE FROM dbo.DimSalesPerson;
-DELETE FROM dbo.FactCustomerChurn;
+DELETE FROM test.dbo.DimDate;
+DELETE FROM test.dbo.DimCustomer;
+DELETE FROM test.dbo.DimSalesPerson;
+DELETE FROM test.dbo.FactCustomerChurn;
 
 
 --------------------------------------------------------------------------------------------------
