@@ -20,7 +20,7 @@ DECLARE @Counter INT = 1;
 DECLARE @CurrencyRateID INT = 13532; -- Start CurrencyRateID at 13532
 DECLARE @StartingSalesOrderID INT = 75124; -- Starting SalesOrderID for new entries
 
-WHILE @Counter <= 100
+WHILE @Counter <= 1000
 BEGIN
     -- Generate random date intervals
     DECLARE @OrderDate DATETIME = DATEADD(DAY, ABS(CHECKSUM(NEWID()) % 10) + 1, @LatestDate); -- Randomly add 1 to 10 days to @LatestDate
