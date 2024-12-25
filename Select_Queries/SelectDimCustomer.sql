@@ -1,0 +1,12 @@
+SELECT [CustomerID]
+      ,[FirstName]
+      ,[MiddleName]
+      ,[LastName]
+      ,[CurrentRecency]
+      ,[CurrentRecencyScore]
+      ,[CurrentTotalFreq]
+      ,[CurrentTotalFreqScore]
+      ,[CurrentTotalSpent]
+      ,[CurrentTotalSpentScore]
+  FROM [test].[dbo].[DimCustomer]
+  ORDER BY CustomerID DESC;

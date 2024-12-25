@@ -1,0 +1,8 @@
+SELECT [SalesPersonID]
+      ,[FirstName]
+      ,[MiddleName]
+      ,[LastName]
+      ,[CustomerID]
+      ,[CurrentSalesPersonFrequency]
+      ,[CurrentSalesPersonFrequencyScore]
+  FROM [test].[dbo].[DimSalesPerson]
