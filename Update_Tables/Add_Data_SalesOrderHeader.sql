@@ -1,4 +1,4 @@
-DELETE FROM [CompanyX].[Sales].[SalesOrderHeader2]
+DELETE FROM [CompanyX].[Sales].[SalesOrderHeader]
 WHERE SalesOrderID >= 75124;
 
 
@@ -32,11 +32,12 @@ BEGIN
     -- Random SalesPersonID
     DECLARE @SalesPersonID INT = (
         SELECT TOP 1 [BusinessEntityID] 
-        FROM (
-            SELECT [BusinessEntityID] FROM [CompanyX].[Sales].[SalesPerson]
-            UNION ALL
-            SELECT -1 AS [BusinessEntityID] -- Include -1 in the random selection
-        ) AS CombinedSalesPerson
+        FROM [CompanyX].[Sales].[SalesPerson]
+--		(
+--            SELECT [BusinessEntityID] FROM [CompanyX].[Sales].[SalesPerson]
+--            UNION ALL
+--            SELECT -1 AS [BusinessEntityID] -- Include -1 in the random selection
+--       ) AS CombinedSalesPerson
         ORDER BY NEWID()
     );
 
@@ -101,7 +102,7 @@ BEGIN
 
 	DECLARE @SalesOrderNumber NVARCHAR(20) = CONCAT('SO', @StartingSalesOrderID);
 
-    INSERT INTO [CompanyX].[Sales].[SalesOrderHeader2]
+    INSERT INTO [CompanyX].[Sales].[SalesOrderHeader]
     (
         [RevisionNumber],         -- Revision number
         [OrderDate],              -- Order date
@@ -109,7 +110,7 @@ BEGIN
         [ShipDate],               -- Ship date
         [Status],                 -- Status
         [OnlineOrderFlag],        -- Online order flag
-		[SalesOrderNumber],		  
+--		[SalesOrderNumber],		  
         [CustomerID],             -- Customer ID (random)
         [SalesPersonID],          -- Salesperson ID (random or -1)
         [TerritoryID],            -- TerritoryID matching CustomerID
@@ -117,11 +118,11 @@ BEGIN
         [ShipToAddressID],        -- Same AddressID as BillToAddressID
         [ShipMethodID],           -- Random ShipMethodID (1 to 5)
         [CreditCardID],           -- CreditCardID matching PersonID
-        [CurrencyRateID],         -- Incremental CurrencyRateID
+--        [CurrencyRateID],         -- Incremental CurrencyRateID
         [SubTotal],               -- Random Subtotal
         [TaxAmt],                 -- Random TaxAmt
         [Freight],                -- Random Freight
-        [TotalDue],               -- Sum of SubTotal, TaxAmt, and Freight
+--        [TotalDue],               -- Sum of SubTotal, TaxAmt, and Freight
         [Comment],                -- Comment or notes
         [rowguid],                -- Unique identifier for the row
         [ModifiedDate]            -- Modified date
@@ -134,7 +135,7 @@ BEGIN
         @ShipDate,                       -- Random incremental [ShipDate]
         @Status,                         -- Random Status (5 or 6)
         @OnlineOrderFlag,                -- OnlineOrderFlag: 1 if SalesPersonID = -1, otherwise 0
-		@SalesOrderNumber,
+--		@SalesOrderNumber,
         @CustomerID,                     -- Random [CustomerID]
         @SalesPersonID,                  -- Random [SalesPersonID] or -1
         @TerritoryID,                    -- TerritoryID matching CustomerID
@@ -142,11 +143,11 @@ BEGIN
         @AddressID,                      -- [ShipToAddressID] (same as [BillToAddressID])
         @ShipMethodID,                   -- Random [ShipMethodID] (1 to 5)
         @CreditCardID,                   -- CreditCardID matching PersonID
-        @CurrencyRateID,                 -- Incremental CurrencyRateID
+--        @CurrencyRateID,                 -- Incremental CurrencyRateID
         @SubTotal,                       -- Random [SubTotal]
         @TaxAmt,                         -- Random [TaxAmt]
         @Freight,                        -- Random [Freight]
-        @TotalDue,                       -- Sum of SubTotal, TaxAmt, and Freight
+--        @TotalDue,                       -- Sum of SubTotal, TaxAmt, and Freight
         NULL,                            -- [Comment]
         NEWID(),                         -- [rowguid]
         @ModifiedDate                    -- [ModifiedDate] = @ShipDate
